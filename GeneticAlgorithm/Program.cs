@@ -69,10 +69,17 @@ namespace GeneticAlgorithm
 
                 // Set stopping conditions
                 int solution = 0;
+                int repeated_generations = 0;
+                int max_repeated_generations = 200; 
                 int max_generations = 1000;
 
                 // Update algorithm until stopping conditions are met
-                while (asmt.ga.Generation < max_generations && asmt.ga.BestFitness > solution || asmt.ga.BestFitness == 0)
+                while (
+                    asmt.ga.Generation < max_generations && 
+                    asmt.ga.BestFitness > solution && 
+                    repeated_generations < max_repeated_generations || 
+                    asmt.ga.BestFitness == 0
+                    )
                 {
                     // Prevent cursor flickering
                     Console.CursorVisible = false;
@@ -89,8 +96,19 @@ namespace GeneticAlgorithm
                     Console.Write(sb);
                     Console.SetCursorPosition(0, Console.CursorTop - 7);
 
+                    double prevBestFitness = asmt.ga.BestFitness;
+
                     // Update 
                     asmt.Update();
+
+                    if (prevBestFitness == asmt.ga.BestFitness)
+                    {
+                        repeated_generations++;
+                    }
+                    else
+                    {
+                        repeated_generations = 0;
+                    }
 
                     //// Append to csv
                     //newLine = string.Format("{0}, {1}", asmt.ga.Generation, asmt.ga.BestFitness);
