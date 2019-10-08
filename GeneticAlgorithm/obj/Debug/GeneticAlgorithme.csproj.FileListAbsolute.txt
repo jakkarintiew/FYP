@@ -1,0 +1,7 @@
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithmeGeneralisedAssignment\bin\Debug\GeneticAlgorithm.exe.config
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithmeGeneralisedAssignment\bin\Debug\GeneticAlgorithm.exe
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithmeGeneralisedAssignment\bin\Debug\GeneticAlgorithm.pdb
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithmeGeneralisedAssignment\obj\Debug\GeneticAlgorithme.csprojAssemblyReference.cache
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithmeGeneralisedAssignment\obj\Debug\GeneticAlgorithme.csproj.CoreCompileInputs.cache
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithmeGeneralisedAssignment\obj\Debug\GeneticAlgorithm.exe
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithmeGeneralisedAssignment\obj\Debug\GeneticAlgorithm.pdb
