@@ -8,6 +8,7 @@ namespace GeneticAlgorithm
 {
     public class Printer
     {
+        private StringBuilder sb;
         public Printer()
         {
 
@@ -31,15 +32,15 @@ namespace GeneticAlgorithm
             Schedule bestSchedule = new Schedule(ga.BestGenes);
 
             // Print current best genes
-            var sb = new StringBuilder();
+            sb = new StringBuilder();
             sb.AppendLine("-------------------------------");
-            sb.AppendFormat("Current Generation: {0}        \n", ga.Generation);
-            sb.AppendFormat("Current Assignment: [ {0} ]    \n", string.Join(", ", ga.BestGenes));
-            sb.AppendFormat("Current Best Fitness: {0}      \n", ga.BestFitness);
-            sb.AppendFormat("Current Cost: {0}              \n", bestSchedule.cost);
-            sb.AppendFormat("Current Makespan: {0}          \n", bestSchedule.makespan);
-            sb.AppendFormat("Population Size: {0}           \n", Data.populationSize);
-            sb.AppendFormat("Mutation Rate: {0}             \n", Data.mutationRate);
+            sb.AppendFormat("Current Generation:    {0}     \n", ga.Generation);
+            sb.AppendFormat("Current Assignment:    [ {0} ] \n", string.Join(", ", ga.BestGenes));
+            sb.AppendFormat("Current Best Fitness:  {0}     \n", ga.BestFitness);
+            sb.AppendFormat("Current Cost:          {0}     \n", bestSchedule.cost);
+            sb.AppendFormat("Current Makespan:      {0}     \n", bestSchedule.makespan);
+            sb.AppendFormat("Population Size:       {0}     \n", Data.populationSize);
+            sb.AppendFormat("Mutation Rate:         {0}     \n", Data.mutationRate);
             sb.AppendLine("-------------------------------");
             Console.Write(sb);
             Console.SetCursorPosition(0, Console.CursorTop - sb.ToString().Count(c => c == '\n'));
@@ -50,16 +51,16 @@ namespace GeneticAlgorithm
             Schedule bestSchedule = new Schedule(ga.BestGenes);
 
             // Print solution and run time
-            Console.SetCursorPosition(0, Console.CursorTop + 8);
+            Console.SetCursorPosition(0, Console.CursorTop + sb.ToString().Count(c => c == '\n') + 2);
             Console.WriteLine("========= Result =========");
-            Console.WriteLine("Generation: {0}", ga.Generation);
-            Console.WriteLine("Assignment: [ {0} ]", String.Join(", ", ga.BestGenes));
+            Console.WriteLine("Generation:          {0}",            ga.Generation);
+            Console.WriteLine("Assignment:          [ {0} ]",        String.Join(", ", ga.BestGenes));
+            Console.WriteLine("Best Fitness:        {0}",          ga.BestFitness);
+            Console.WriteLine("Cost:                {0}",                  bestSchedule.cost);
+            Console.WriteLine("Makespan:            {0}",              bestSchedule.makespan);
+            Console.WriteLine("Population Size:     {0}",  ga.Population.Count);
+            Console.WriteLine("RunTime:             {0}",               elapsedTime);
             PrintSchedule(bestSchedule);
-            Console.WriteLine("Best Fitness: " + ga.BestFitness);
-            Console.WriteLine("Cost: " + bestSchedule.cost);
-            Console.WriteLine("Makespan: " + bestSchedule.makespan);
-            Console.WriteLine("Best Population Size: " + ga.Population.Count);
-            Console.WriteLine("RunTime: " + elapsedTime);
             Console.WriteLine("==========================\n");
         }
 
