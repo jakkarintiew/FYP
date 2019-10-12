@@ -55,7 +55,6 @@ namespace GeneticAlgorithm
 
             if (Genes == otherParent.Genes)
             {
-                // might get stuck here as all individuals in population become the same
                 child.Genes = Genes;
             }
             else
@@ -108,9 +107,12 @@ namespace GeneticAlgorithm
                 }
                 
                 schedule = new Schedule(child.Genes);
+
                 counter++;
 
             }
+
+
 
 
             return child;

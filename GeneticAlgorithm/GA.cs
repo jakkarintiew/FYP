@@ -17,41 +17,29 @@ namespace GeneticAlgorithm
         private List<Chromosome> newPopulation;
         private Random random;
         private int chromoSize;
-        private Func<List<int>> getRandomGenes;
-        private Func<int, int> fitnessFunction;
 
         // Constructor
-        public GA(
-            int populationSize,
-            int chromoSize,
-            Random random,
-            Func<List<int>> getRandomGenes,
-            Func<int, int> fitnessFunction,
-            int elitism,
-            float mutationRate
-            )
+        public GA()
         {
             Generation = 1;
-            Elitism = elitism;
-            MutationRate = mutationRate;
-            Population = new List<Chromosome>(populationSize);
-            newPopulation = new List<Chromosome>(populationSize);
-            this.random = random;
-            this.chromoSize = chromoSize;
-            this.getRandomGenes = getRandomGenes;
-            this.fitnessFunction = fitnessFunction;
+            Elitism = Data.elitism;
+            MutationRate = Data.mutationRate;
+            Population = new List<Chromosome>(Data.populationSize);
+            newPopulation = new List<Chromosome>(Data.populationSize);
+            random = new Random();
+            chromoSize = Data.num_jobs;
 
             BestGenes = new List<int>(chromoSize);
 
-            for (int i = 0; i < populationSize; i++)
+            for (int i = 0; i < Data.populationSize; i++)
             {
-                Population.Add(new Chromosome(chromoSize, random, getRandomGenes, fitnessFunction, shouldInitGenes: true));
+                Population.Add(new Chromosome(chromoSize, random, GetRandomGenes, FitnessFunction, shouldInitGenes: true));
             }
         }
 
-        public void NewGeneration(int numNewDNA = 0, bool crossoverNewDNA = false)
+        public void NewGeneration(int numNewDNA = 20, bool crossoverNewDNA = true)
         {
-            int finalCount = Population.Count + numNewDNA;
+            int finalCount = Data.populationSize + numNewDNA;
             
             if (finalCount <= 0)
             {
@@ -60,7 +48,7 @@ namespace GeneticAlgorithm
 
             if (Population.Count > 0)
             {
-                CalculateFitness();
+                CalculateAllFitness();
                 Population.Sort(CompareFitness);
                 //Console.WriteLine("Best: " + Population[0].Fitness);
                 //Console.WriteLine("Worst: " + Population[Population.Count - 1].Fitness);
@@ -74,14 +62,14 @@ namespace GeneticAlgorithm
             // Deleted memory for eliminated individuals with poor fitness
             newPopulation.Clear();
 
-            for (int i = 0; i < Population.Count; i++)
+            for (int i = 0; i < finalCount; i++)
             {
                 // Keep only top individuals of the previous generation
-                if (i < Elitism && i < Population.Count)
+                if (i < Elitism && i < Data.populationSize)
                 {
                     newPopulation.Add(Population[i]);
                 }
-                else if (i < Population.Count || crossoverNewDNA)
+                else if (i < Data.populationSize)
                 {
 
                     Chromosome parent1 = ChooseParent();
@@ -92,9 +80,9 @@ namespace GeneticAlgorithm
 
                     newPopulation.Add(child);
                 }
-                else
+                else if (crossoverNewDNA)
                 {
-                    newPopulation.Add(new Chromosome(chromoSize, random, getRandomGenes, fitnessFunction, shouldInitGenes: true));
+                    newPopulation.Add(new Chromosome(chromoSize, random, GetRandomGenes, FitnessFunction, shouldInitGenes: true));
                 }
             }
 
@@ -103,6 +91,41 @@ namespace GeneticAlgorithm
             newPopulation = tmpList;
 
             Generation++;
+        }
+
+        private List<int> GetRandomGenes()
+        {
+
+            // Array of n jobs, each element could be a worker index, i
+            List<int> assignment = new List<int>(chromoSize);
+            Schedule schedule = null;
+
+            while (schedule == null || !schedule.isFeasible)
+            {
+                assignment.Clear();
+                for (int j = 0; j < chromoSize; j++)
+                {
+                    assignment.Add(random.Next(0, Data.num_machines));
+                }
+                schedule = new Schedule(assignment);
+                //Console.WriteLine(schedule.isFeasible);
+            }
+
+            return schedule.assignment;
+        }
+
+        private int FitnessFunction(int index)
+        {
+            int fitness = 0;
+            Chromosome chrmsm = Population[index];
+
+            // Calculate total cost
+            for (int i = 0; i < Data.num_jobs; i++)
+            {
+                fitness += Data.costs[chrmsm.Genes[i], i];
+            }
+
+            return fitness;
         }
 
         // TODO: implement minimize or maximize boolean argument
@@ -126,7 +149,7 @@ namespace GeneticAlgorithm
             }
         }
 
-        public void CalculateFitness()
+        public void CalculateAllFitness()
         {
             // initialize best individual to be the first element of the Population
             Chromosome best = Population[0];
