@@ -11,18 +11,18 @@ namespace GeneticAlgorithm
         public Schedule schedule { get; private set; }
 
         // Fitness of each individual
-        public int Fitness { get; private set; }
+        public double Fitness { get; private set; }
 
         private Random random;
         private Func<List<int>> getRandomGenes;
-        private Func<int, int> fitnessFunction;
+        private Func<int, double> fitnessFunction;
 
         // Construtor
         public Chromosome(
             int size,
             Random random,
             Func<List<int>> getRandomGenes,
-            Func<int, int> fitnessFunction,
+            Func<int, double> fitnessFunction,
             bool shouldInitGenes = true)
         {
             // Create the Gene array with size

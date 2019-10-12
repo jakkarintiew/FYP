@@ -27,6 +27,8 @@ namespace GeneticAlgorithm
         public static float mutationRate = 0.05f;
         public static int elitism = 5;
         public static int crossoverMethod = 0;
+        public enum objetiveFunction { TotalCost, MakeSpan, Combined }
+        public static int objectiveCase = 1;
 
         public static List<Machine> InitMachines()
         {

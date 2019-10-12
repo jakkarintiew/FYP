@@ -34,9 +34,9 @@ namespace GeneticAlgorithm
             printer.PrintProblemDescription();
 
             // Set stopping conditions
-            int solution = 0;
+            int solution = 910;
             int repeated_generations = 0;
-            int max_repeated_generations = 1000;
+            int max_repeated_generations = 500;
             int max_generations = 1000;
 
             // Update algorithm until stopping conditions are met:
@@ -51,13 +51,13 @@ namespace GeneticAlgorithm
                 ga.BestFitness == 0
                 )
             {
-                printer.PrintCurrentGen(ga);
-                //csvWriter.WriteLine(ga);
-
                 double prevBestFitness = ga.BestFitness;
 
                 // Update 
                 ga.NewGeneration();
+
+                printer.PrintCurrentGen(ga);
+                //csvWriter.WriteLine(ga);
 
                 if (prevBestFitness == ga.BestFitness)
                 {

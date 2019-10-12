@@ -8,9 +8,11 @@ namespace GeneticAlgorithm
 {
     public class Schedule
     {
-        public List<int> assignment { get; set; }
-        public List<Machine> machines { get; set; }
-        public List<Job> jobs { get; set; }
+        public List<int> assignment { get; private set; }
+        public List<Machine> machines { get; private set; }
+        public List<Job> jobs { get; private set; }
+        public double cost { get; private set; }
+        public double makespan { get; private set; }
         public bool isFeasible { get; private set; }
 
         // Construtor
@@ -28,23 +30,14 @@ namespace GeneticAlgorithm
 
             for (int j = 0; j  < jobs.Count; j ++)
             {
-
                 // Assgin a fresh Machine to the Job
                 Assign(machines[assignment[j]], jobs[j]);
+                cost += Data.costs[assignment[j], j];
                 isFeasible = true;
-
-                //if (machines[assignment[j]].readyTime <= jobs[j].readyTime)
-                //{
-                //    // Assgin a fresh Machine to the Job
-                //    Assign(machines[assignment[j]], jobs[j]);
-                //    isFeasible = true;
-                //}
-                //else
-                //{
-                //    isFeasible = false;
-                //    break; 
-                //}
             }
+
+            makespan = jobs.Select(x => x.completeTime).Max();
+
         }
 
         private void Assign(Machine machine, Job job)

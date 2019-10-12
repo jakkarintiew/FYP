@@ -28,13 +28,16 @@ namespace GeneticAlgorithm
         {
             // Prevent cursor flickering
             Console.CursorVisible = false;
+            Schedule bestSchedule = new Schedule(ga.BestGenes);
 
             // Print current best genes
             var sb = new StringBuilder();
             sb.AppendLine("-------------------------------");
             sb.AppendFormat("Current Generation: {0}        \n", ga.Generation);
-            sb.AppendFormat("Current Assignment: [ {0} ]\n", string.Join(", ", ga.BestGenes));
+            sb.AppendFormat("Current Assignment: [ {0} ]    \n", string.Join(", ", ga.BestGenes));
             sb.AppendFormat("Current Best Fitness: {0}      \n", ga.BestFitness);
+            sb.AppendFormat("Current Cost: {0}              \n", bestSchedule.cost);
+            sb.AppendFormat("Current Makespan: {0}          \n", bestSchedule.makespan);
             sb.AppendFormat("Population Size: {0}           \n", Data.populationSize);
             sb.AppendFormat("Mutation Rate: {0}             \n", Data.mutationRate);
             sb.AppendLine("-------------------------------");
@@ -44,8 +47,7 @@ namespace GeneticAlgorithm
             
         public void PrintResult(GA ga, string elapsedTime)
         {
-            Schedule bestSchedule;
-            bestSchedule = new Schedule(ga.BestGenes);
+            Schedule bestSchedule = new Schedule(ga.BestGenes);
 
             // Print solution and run time
             Console.SetCursorPosition(0, Console.CursorTop + 8);
@@ -53,7 +55,9 @@ namespace GeneticAlgorithm
             Console.WriteLine("Generation: {0}", ga.Generation);
             Console.WriteLine("Assignment: [ {0} ]", String.Join(", ", ga.BestGenes));
             PrintSchedule(bestSchedule);
-            Console.WriteLine("Best Fitness (cost): " + ga.BestFitness);
+            Console.WriteLine("Best Fitness: " + ga.BestFitness);
+            Console.WriteLine("Cost: " + bestSchedule.cost);
+            Console.WriteLine("Makespan: " + bestSchedule.makespan);
             Console.WriteLine("Best Population Size: " + ga.Population.Count);
             Console.WriteLine("RunTime: " + elapsedTime);
             Console.WriteLine("==========================\n");

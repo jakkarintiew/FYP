@@ -8,7 +8,7 @@ namespace GeneticAlgorithm
     {
         public List<Chromosome> Population { get; private set; }
         public int Generation { get; private set; }
-        public int BestFitness { get; private set; }
+        public double BestFitness { get; private set; }
         public List<int> BestGenes { get; private set; }
 
         public int Elitism;
@@ -17,6 +17,8 @@ namespace GeneticAlgorithm
         private List<Chromosome> newPopulation;
         private Random random;
         private int chromoSize;
+        
+
 
         // Constructor
         public GA()
@@ -114,15 +116,25 @@ namespace GeneticAlgorithm
             return schedule.assignment;
         }
 
-        private int FitnessFunction(int index)
+        private double FitnessFunction(int index)
         {
-            int fitness = 0;
+            double fitness = 0;
             Chromosome chrmsm = Population[index];
+            Schedule schedule = new Schedule(chrmsm.Genes);
 
-            // Calculate total cost
-            for (int i = 0; i < Data.num_jobs; i++)
+            Data.objetiveFunction objetive = (Data.objetiveFunction) Data.objectiveCase;
+
+            switch (objetive)
             {
-                fitness += Data.costs[chrmsm.Genes[i], i];
+                case Data.objetiveFunction.TotalCost:
+                    fitness = schedule.cost;
+                    break;
+                case Data.objetiveFunction.MakeSpan:
+                    fitness = schedule.makespan;
+                    break;
+                case Data.objetiveFunction.Combined:
+                    fitness = Math.Pow(schedule.cost, 3) + Math.Pow(schedule.makespan, 2);
+                    break;
             }
 
             return fitness;
