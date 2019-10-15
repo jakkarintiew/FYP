@@ -39,8 +39,10 @@ namespace GeneticAlgorithm
             }
         }
 
-        public void NewGeneration(int numNewDNA = 20, bool crossoverNewDNA = true)
+        public void NewGeneration()
         {
+            int numNewDNA = Data.numNewDNA;
+            bool crossoverNewDNA = false;
             int finalCount = Data.populationSize + numNewDNA;
             
             if (finalCount <= 0)
@@ -71,7 +73,7 @@ namespace GeneticAlgorithm
                 {
                     newPopulation.Add(Population[i]);
                 }
-                else if (i < Data.populationSize)
+                else if (i < Data.populationSize || crossoverNewDNA)
                 {
 
                     Chromosome parent1 = ChooseParent();
@@ -82,7 +84,7 @@ namespace GeneticAlgorithm
 
                     newPopulation.Add(child);
                 }
-                else if (crossoverNewDNA)
+                else
                 {
                     newPopulation.Add(new Chromosome(chromoSize, random, GetRandomGenes, FitnessFunction, shouldInitGenes: true));
                 }
@@ -129,11 +131,11 @@ namespace GeneticAlgorithm
                 case Data.objetiveFunction.TotalCost:
                     fitness = schedule.cost;
                     break;
-                case Data.objetiveFunction.MakeSpan:
+                case Data.objetiveFunction.Makespan:
                     fitness = schedule.makespan;
                     break;
                 case Data.objetiveFunction.Combined:
-                    fitness = Math.Pow(schedule.cost, 3) + Math.Pow(schedule.makespan, 2);
+                    fitness = Math.Pow(schedule.cost, 3) + Math.Pow(schedule.makespan, 3);
                     break;
             }
 

@@ -33,21 +33,18 @@ namespace GeneticAlgorithm
 
             printer.PrintProblemDescription();
 
-            // Set stopping conditions
-            int solution = 910;
-            int repeated_generations = 0;
-            int max_repeated_generations = 500;
-            int max_generations = 1000;
 
             // Update algorithm until stopping conditions are met:
             // Condition 1: if total number of generation reaches a threshold
             // Condition 2: if number of generation where the fitness remained constant reaches a threshold
             // Condition 3: if global optimizor (if defined) is reached
 
+            int repeated_generations = 0;
+
             while (
-                ga.Generation < max_generations &&
-                repeated_generations < max_repeated_generations &&
-                ga.BestFitness > solution ||
+                ga.Generation < Data.max_generations &&
+                repeated_generations < Data.max_repeated_generations &&
+                ga.BestFitness > Data.solution ||
                 ga.BestFitness == 0
                 )
             {

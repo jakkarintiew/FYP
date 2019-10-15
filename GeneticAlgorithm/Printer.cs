@@ -36,10 +36,11 @@ namespace GeneticAlgorithm
             sb.AppendLine("-------------------------------");
             sb.AppendFormat("Current Generation:    {0}     \n", ga.Generation);
             sb.AppendFormat("Current Assignment:    [ {0} ] \n", string.Join(", ", ga.BestGenes));
+            sb.AppendFormat("Fitness Fucntion:      {0}     \n", Enum.GetName(typeof(Data.objetiveFunction), Data.objectiveCase));
             sb.AppendFormat("Current Best Fitness:  {0}     \n", ga.BestFitness);
             sb.AppendFormat("Current Cost:          {0}     \n", bestSchedule.cost);
             sb.AppendFormat("Current Makespan:      {0}     \n", bestSchedule.makespan);
-            sb.AppendFormat("Population Size:       {0}     \n", Data.populationSize);
+            sb.AppendFormat("Population Size:       {0}     \n", ga.Population.Count);
             sb.AppendFormat("Mutation Rate:         {0}     \n", Data.mutationRate);
             sb.AppendLine("-------------------------------");
             Console.Write(sb);

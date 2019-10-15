@@ -66,12 +66,12 @@ namespace GeneticAlgorithm
                     {
                         // If parent 1 has better fitness   
                         // Higher probability to take gene from parent 1
-                        prob = (double)otherParent.Fitness / (Fitness + otherParent.Fitness);
+                        prob = otherParent.Fitness / (Fitness + otherParent.Fitness);
                         child.Genes[i] = random.NextDouble() < prob ? Genes[i] : otherParent.Genes[i];
                     }
                     else
                     {
-                        prob = (double)Fitness / (Fitness + otherParent.Fitness);
+                        prob = Fitness / (Fitness + otherParent.Fitness);
                         child.Genes[i] = random.NextDouble() < prob ? Genes[i] : otherParent.Genes[i];
                     }
                 }
