@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 
 namespace GeneticAlgorithm
@@ -49,72 +50,56 @@ namespace GeneticAlgorithm
         {
             // create new child Chromosome with same gene array size as parent; improve performance by setting shouldInitGenes: false
             Chromosome child = new Chromosome(Genes.Count, random, getRandomGenes, fitnessFunction, shouldInitGenes: true);
-
-            double prob;
-            int counter = 0;
+            Data.crossoverFunction crossoverMethod = (Data.crossoverFunction)Data.crossoverMethod;
 
             if (Genes == otherParent.Genes)
             {
                 child.Genes = Genes;
             }
             else
-            //TODO: Ensure feasibility after crossover
             {
-                for (int i = 0; i < Genes.Count; i++)
+                switch (crossoverMethod)
                 {
-                    if (Fitness < otherParent.Fitness)
-                    {
-                        // If parent 1 has better fitness   
-                        // Higher probability to take gene from parent 1
-                        prob = otherParent.Fitness / (Fitness + otherParent.Fitness);
-                        child.Genes[i] = random.NextDouble() < prob ? Genes[i] : otherParent.Genes[i];
-                    }
-                    else
-                    {
-                        prob = Fitness / (Fitness + otherParent.Fitness);
-                        child.Genes[i] = random.NextDouble() < prob ? Genes[i] : otherParent.Genes[i];
-                    }
-                }
-            }
-
-            schedule = new Schedule(child.Genes);
-
-            while (!schedule.isFeasible)
-            {
-                if (Genes == otherParent.Genes)
-                {
-                    // might get stuck here as all individuals in population become the same
-                    child.Genes = Genes;
-                }
-                else
-                //TODO: Ensure feasibility after crossover
-                {
-                    for (int i = 0; i < Genes.Count; i++)
-                    {
+                    case Data.crossoverFunction.Uniform:
+                        double prob;
+                        for (int i = 0; i < Genes.Count; i++)
+                        {
+                            if (Fitness < otherParent.Fitness)
+                            {
+                                // If parent 1 has better fitness   
+                                // Higher probability to take gene from parent 1
+                                prob = otherParent.Fitness / (Fitness + otherParent.Fitness);
+                                child.Genes[i] = random.NextDouble() < prob ? Genes[i] : otherParent.Genes[i];
+                            }
+                            else
+                            {
+                                prob = Fitness / (Fitness + otherParent.Fitness);
+                                child.Genes[i] = random.NextDouble() < prob ? Genes[i] : otherParent.Genes[i];
+                            }
+                        }
+                        break;
+                    case Data.crossoverFunction.SinglePoint:
                         if (Fitness < otherParent.Fitness)
                         {
-                            // If parent 1 has better fitness   
-                            // Higher probability to take gene from parent 1
-                            prob = (double)otherParent.Fitness / (Fitness + otherParent.Fitness);
-                            child.Genes[i] = random.NextDouble() < prob ? Genes[i] : otherParent.Genes[i];
+                            int crossOverPoint = random.Next(Genes.Count / 2);
+                            child.Genes = Genes.Take(crossOverPoint).Concat(otherParent.Genes.Skip(crossOverPoint)).ToList<int>();
                         }
                         else
                         {
-                            prob = (double)Fitness / (Fitness + otherParent.Fitness);
-                            child.Genes[i] = random.NextDouble() < prob ? Genes[i] : otherParent.Genes[i];
+                            int crossOverPoint = random.Next(Genes.Count / 2, Genes.Count - 1);
+                            child.Genes = Genes.Take(crossOverPoint).Concat(otherParent.Genes.Skip(crossOverPoint)).ToList<int>();
                         }
-                    }
+                        break;
+                    case Data.crossoverFunction.TwoPoint:
+                        int firstCrossOverPoint = random.Next(Genes.Count / 2);
+                        int secondCrossOverPoint = random.Next(firstCrossOverPoint, Genes.Count);
+                        child.Genes = Genes.Take(firstCrossOverPoint).Concat(otherParent.Genes.Skip(firstCrossOverPoint).Take(secondCrossOverPoint- firstCrossOverPoint)).Concat(Genes.Skip(secondCrossOverPoint)).ToList<int>();
+                        break;
                 }
-                
-                schedule = new Schedule(child.Genes);
-
-                counter++;
 
             }
-
-
-
-
+ 
+            schedule = new Schedule(child.Genes);
             return child;
         }
 

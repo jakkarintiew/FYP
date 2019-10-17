@@ -37,6 +37,7 @@ namespace GeneticAlgorithm
             sb.AppendFormat("Current Generation:    {0}     \n", ga.Generation);
             sb.AppendFormat("Current Assignment:    [ {0} ] \n", string.Join(", ", ga.BestGenes));
             sb.AppendFormat("Fitness Fucntion:      {0}     \n", Enum.GetName(typeof(Data.objetiveFunction), Data.objectiveCase));
+            sb.AppendFormat("Crossover Fucntion:    {0}     \n", Enum.GetName(typeof(Data.crossoverFunction), Data.crossoverMethod));
             sb.AppendFormat("Current Best Fitness:  {0}     \n", ga.BestFitness);
             sb.AppendFormat("Current Cost:          {0}     \n", bestSchedule.cost);
             sb.AppendFormat("Current Makespan:      {0}     \n", bestSchedule.makespan);

@@ -26,8 +26,10 @@ namespace GeneticAlgorithm
         // GA parameters
         public static int populationSize = 500;
         public static int numNewDNA = 50;
-        public static float mutationRate = 0.05f;
-        public static int elitism = 5;
+        public static float mutationRate = 0.10f;
+        public static int elitism = 10;
+
+        public enum crossoverFunction { Uniform, SinglePoint, TwoPoint}
         public static int crossoverMethod = 0;
         public enum objetiveFunction { TotalCost, Makespan, Combined }
         public static int objectiveCase = 1;
@@ -42,11 +44,11 @@ namespace GeneticAlgorithm
             List<Machine> machines = new List<Machine>();
 
             Object[,] mat = new Object[,] {
-                { 0, 30.278, 10.244 },
-                { 1, 240.070, 9.007 },
-                { 2, 50.247, 12.931 },
-                { 3, 820.422, 15.663 },
-                { 4, 700.663, 13.016 }
+                { 0, 30.278, 0.944 },
+                { 1, 240.070, 1.007 },
+                { 2, 50.247, 1.931 },
+                { 3, 820.422, 0.663 },
+                { 4, 700.663, 1.016 }
             };
 
             for (int i = 0; i < mat.GetLength(0); i++)
