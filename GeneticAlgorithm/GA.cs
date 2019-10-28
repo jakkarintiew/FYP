@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq;
 
 namespace GeneticAlgorithm
 {
@@ -78,9 +78,9 @@ namespace GeneticAlgorithm
 
                     Chromosome parent1 = ChooseParent();
                     Chromosome parent2 = ChooseParent();
-                    Chromosome child = parent1.Crossover(parent2);
+                    Chromosome child = Crossover(parent1, parent2);
 
-                    child.Mutate(MutationRate);
+                    child = Mutate(child, MutationRate);
 
                     newPopulation.Add(child);
                 }
@@ -101,7 +101,7 @@ namespace GeneticAlgorithm
         {
 
             // Array of n jobs, each element could be a worker index, i
-            List<int> assignment = new List<int>(chromoSize);
+            List<int> assignment = new List<int>(new int[chromoSize]);
             Schedule schedule = null;
 
             while (schedule == null || !schedule.isFeasible)
@@ -201,6 +201,80 @@ namespace GeneticAlgorithm
             }
 
             return best;
+        }
+
+        // Crossover function
+        public Chromosome Crossover(Chromosome firstParent, Chromosome secondParent)
+        {
+            // create new child Chromosome with same gene array size as parent; improve performance by setting shouldInitGenes: false
+            Chromosome child = new Chromosome(firstParent.Genes.Count, random, GetRandomGenes, FitnessFunction, shouldInitGenes: false);
+
+            Data.crossoverFunction crossoverMethod = (Data.crossoverFunction)Data.crossoverMethod;
+
+            if (firstParent.Genes == secondParent.Genes)
+            {
+                child.Genes = firstParent.Genes;
+            }
+            else
+            {
+                switch (crossoverMethod)
+                {
+                    case Data.crossoverFunction.Uniform:
+                        double prob;
+                        for (int i = 0; i < firstParent.Genes.Count; i++)
+                        {
+                            if (firstParent.Fitness < secondParent.Fitness)
+                            {
+                                // If parent 1 has better fitness   
+                                // Higher probability to take gene from parent 1
+                                prob = secondParent.Fitness / (firstParent.Fitness + secondParent.Fitness);
+                                child.Genes[i] = random.NextDouble() < prob ? firstParent.Genes[i] : secondParent.Genes[i];
+                            }
+                            else
+                            {
+                                prob = firstParent.Fitness / (firstParent.Fitness + secondParent.Fitness);
+                                child.Genes[i] = random.NextDouble() < prob ? firstParent.Genes[i] : secondParent.Genes[i];
+                            }
+                        }
+                        break;
+
+                    case Data.crossoverFunction.SinglePoint:
+                        if (firstParent.Fitness < secondParent.Fitness)
+                        {
+                            int crossOverPoint = random.Next(firstParent.Genes.Count / 2);
+                            child.Genes = firstParent.Genes.Take(crossOverPoint).Concat(secondParent.Genes.Skip(crossOverPoint)).ToList<int>();
+                        }
+                        else
+                        {
+                            int crossOverPoint = random.Next(firstParent.Genes.Count / 2, firstParent.Genes.Count - 1);
+                            child.Genes = firstParent.Genes.Take(crossOverPoint).Concat(secondParent.Genes.Skip(crossOverPoint)).ToList<int>();
+                        }
+                        break;
+                    case Data.crossoverFunction.TwoPoint:
+                        int firstCrossOverPoint = random.Next(firstParent.Genes.Count / 2);
+                        int secondCrossOverPoint = random.Next(firstCrossOverPoint, firstParent.Genes.Count);
+                        child.Genes = firstParent.Genes.Take(firstCrossOverPoint).Concat(secondParent.Genes.Skip(firstCrossOverPoint).Take(secondCrossOverPoint - firstCrossOverPoint)).Concat(firstParent.Genes.Skip(secondCrossOverPoint)).ToList<int>();
+                        break;
+                }
+
+            }
+
+            child.schedule = new Schedule(child.Genes);
+            return child;
+        }
+
+        // Mutation function: simply get a random new gene
+        public Chromosome Mutate(Chromosome chromosome, float mutationRate)
+        {
+
+            if (random.NextDouble() < mutationRate)
+            {
+                // Generate a random gene
+                chromosome.Genes = GetRandomGenes();
+            }
+
+            return chromosome;
+
         }
     }
 

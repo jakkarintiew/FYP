@@ -11,11 +11,11 @@ namespace GeneticAlgorithm
         // Problem static data
         public static int[,] costs = 
         {
-            { 55, 225, 165, 125, 30, 175, 35, 105, 105, 210, 85, 90, 85, 145, 75 },
-            { 215, 55, 100, 50, 225, 125, 105, 140, 250, 60, 235, 30, 120, 210, 120 },
-            { 65, 120, 115, 245, 215, 175, 90, 190, 230, 45, 180, 100, 180, 200, 145 },
-            { 175, 40, 150, 65, 145, 195, 125, 190, 80, 160, 190, 195, 150, 70, 200 },
-            { 90, 190, 220, 90, 60, 145, 110, 25, 190, 165, 70, 140, 80, 225, 160 }
+            { 100, 55, 155, 160, 195, 175, 130, 35, 185, 245, 95, 195, 125, 145, 45 },
+            { 40, 25, 65, 160, 175, 245, 35, 230, 205, 245, 55, 50, 235, 30, 35 },
+            { 210, 65, 245, 100, 25, 80, 190, 180, 80, 120, 135, 110, 155, 190, 25 },
+            { 200, 35, 175, 205, 150, 140, 85, 235, 235, 175, 200, 120, 235, 150, 195 },
+            { 165, 90, 165, 135, 65, 185, 40, 145, 185, 215, 235, 250, 215, 250, 190 }
         };
 
         public static int num_machines = costs.GetLength(0);
@@ -24,31 +24,31 @@ namespace GeneticAlgorithm
         public static List<Job> jobs = InitJobs();
 
         // GA parameters
-        public static int populationSize = 500;
-        public static int numNewDNA = 50;
+        public static int populationSize = 200;
+        public static int numNewDNA = 40;
         public static float mutationRate = 0.10f;
         public static int elitism = 10;
 
         public enum crossoverFunction { Uniform, SinglePoint, TwoPoint}
         public static int crossoverMethod = 0;
         public enum objetiveFunction { TotalCost, Makespan, Combined }
-        public static int objectiveCase = 1;
+        public static int objectiveCase = 0;
 
         // Set stopping conditions
         public static int solution = 0;
-        public static int max_repeated_generations = 2000;
-        public static int max_generations = 10000;
+        public static int max_repeated_generations = 100;
+        public static int max_generations = 200;
 
         public static List<Machine> InitMachines()
         {
             List<Machine> machines = new List<Machine>();
 
             Object[,] mat = new Object[,] {
-                { 0, 30.278, 0.944 },
-                { 1, 240.070, 1.007 },
-                { 2, 50.247, 1.931 },
-                { 3, 820.422, 0.663 },
-                { 4, 700.663, 1.016 }
+                { 0, 220.716, 6.462 },
+                { 1, 310.092, 10.059 },
+                { 2, 620.403, 11.543 },
+                { 3, 600.032, 11.756 },
+                { 4, 320.725, 14.207 }
             };
 
             for (int i = 0; i < mat.GetLength(0); i++)
@@ -64,21 +64,21 @@ namespace GeneticAlgorithm
             List<Job> jobs = new List<Job>();
 
             Object[,] mat = new Object[,] {
-                { 0, 530.998, 999.757 },
-                { 1, 549.879, 583.877 },
-                { 2, 510.308, 405.793 },
-                { 3, 24.755, 138.812 },
-                { 4, 521.801, 113.318 },
-                { 5, 183.044, 691.478 },
-                { 6, 605.105, 281.543 },
-                { 7, 936.982, 691.739 },
-                { 8, 543.221, 424.241 },
-                { 9, 257.745, 265.042 },
-                { 10, 874.987, 463.953 },
-                { 11, 176.743, 351.042 },
-                { 12, 171.077, 289.984 },
-                { 13, 494.485, 43.011 },
-                { 14, 143.002, 459.483 }
+                { 0, 561.257, 458.844 },
+                { 1, 89.907, 546.079 },
+                { 2, 61.677, 871.440 },
+                { 3, 183.935, 882.870 },
+                { 4, 675.026, 293.000 },
+                { 5, 604.260, 538.616 },
+                { 6, 738.316, 862.209 },
+                { 7, 343.078, 586.738 },
+                { 8, 144.777, 301.003 },
+                { 9, 892.413, 680.100 },
+                { 10, 361.408, 537.685 },
+                { 11, 412.792, 120.888 },
+                { 12, 257.113, 419.330 },
+                { 13, 961.996, 501.080 },
+                { 14, 879.388, 877.565 }
             };
 
             for (int i = 0; i < mat.GetLength(0); i++)
