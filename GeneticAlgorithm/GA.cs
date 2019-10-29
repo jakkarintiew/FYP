@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MathNet.Numerics.Random;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace GeneticAlgorithm
 {
@@ -15,7 +17,8 @@ namespace GeneticAlgorithm
         public float MutationRate;
 
         private List<Chromosome> newPopulation;
-        private Random random;
+        private Mcg59 random;
+        //private random random;
         private int chromoSize;
         
 
@@ -28,7 +31,10 @@ namespace GeneticAlgorithm
             MutationRate = Data.mutationRate;
             Population = new List<Chromosome>(Data.populationSize);
             newPopulation = new List<Chromosome>(Data.populationSize);
-            random = new Random();
+
+            int someRobustSeed = RandomSeed.Robust();
+            random = new Mcg59(someRobustSeed);
+
             chromoSize = Data.num_jobs;
 
             BestGenes = new List<int>(chromoSize);
@@ -97,32 +103,103 @@ namespace GeneticAlgorithm
             Generation++;
         }
 
+
+        private int DiceRollSelection(Dictionary<int, double> dict)
+        {
+            double diceRoll = random.NextDouble();
+            double cumulative = 0.0;
+            for (int i = 0; i < dict.Count; i++)
+            {
+                cumulative += dict[dict.Keys.ElementAt(i)];
+                if (diceRoll < cumulative)
+                {
+                    int selectedElement = dict.Keys.ElementAt(i);
+                    //Console.WriteLine("diceRoll: {0}", diceRoll);
+                    return selectedElement;
+                }
+            }
+
+            return -1;
+        }
+
         private List<int> GetRandomGenes()
         {
 
             // Array of n jobs, each element could be a worker index, i
-            List<int> assignment = new List<int>(new int[chromoSize]);
-            Schedule schedule = null;
+            List<int> assignment = new List<int>(new int[Data.num_jobs]);
+            Schedule schedule = new Schedule();
 
-            while (schedule == null || !schedule.isFeasible)
+            Data.objetiveFunction objetive = (Data.objetiveFunction)Data.objectiveCase;
+
+            Vector<double> target_column = Vector<double>.Build.Dense(Data.num_machines);
+            Vector<double> transform_column = Vector<double>.Build.Dense(Data.num_machines);
+            Vector<double> prob_vector = Vector<double>.Build.Dense(Data.num_machines);
+            var machine_index = Enumerable.Range(0, Data.num_machines).ToList();
+
+            switch (objetive)
             {
-                assignment.Clear();
-                for (int j = 0; j < chromoSize; j++)
-                {
-                    assignment.Add(random.Next(0, Data.num_machines));
-                }
-                schedule = new Schedule(assignment);
-                //Console.WriteLine(schedule.isFeasible);
+                case Data.objetiveFunction.TotalCost:
+                    assignment.Clear();
+                    for (int j = 0; j < Data.num_jobs; j++)
+                    {
+                        target_column = Data.cost_mat.Column(j);
+                        transform_column = target_column.Sum() / target_column;
+                        prob_vector = transform_column / transform_column.Sum();
+
+                        Dictionary<int, double> dict = machine_index.Zip(prob_vector, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+                        // { 0: 0.15,
+                        //   1: 0.20,
+                        //   2: 0.25,
+                        //   3: 0.40 }
+
+                        int indexSelectedMachine = DiceRollSelection(dict);
+                        assignment.Add(indexSelectedMachine);
+                        schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                        schedule.cost += Data.cost_mat[indexSelectedMachine, j];
+                    }
+                    break;
+                case Data.objetiveFunction.Makespan:
+                    assignment.Clear();
+                    for (int j = 0; j < Data.num_jobs; j++)
+                    {
+                        target_column = Vector<double>.Abs(Vector<double>.Build.Dense(Data.machines.Select(x => x.readyTime).ToArray()) - Data.jobs[j].readyTime);
+                        transform_column = target_column.Sum() / target_column;
+                        prob_vector = transform_column / transform_column.Sum();
+
+                        Dictionary<int, double> dict = machine_index.Zip(prob_vector, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+                        int indexSelectedMachine = DiceRollSelection(dict);
+
+                        //Console.WriteLine("target_column: [ {0} ]", string.Join(", ", target_column));
+                        //Console.WriteLine("transform_column: [ {0} ]", string.Join(", ", transform_column));
+                        //Console.WriteLine("prob_vector: [ {0} ]", string.Join(", ", prob_vector));
+                        //Console.WriteLine("indexSelectedMachine: {0} \n", indexSelectedMachine);
+
+                        assignment.Add(indexSelectedMachine);
+                        schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                        schedule.cost += Data.cost_mat[indexSelectedMachine, j];
+                    }
+                    break;
             }
 
-            return schedule.assignment;
+
+            //assignment.Clear();
+            //for (int j = 0; j < chromoSize; j++)
+            //{
+            //    assignment.Add(random.Next(0, Data.num_machines));
+            //}
+
+
+            schedule.assignment = assignment;
+            schedule.GetSchedule(assignment);
+            return assignment;
         }
 
         private double FitnessFunction(int index)
         {
             double fitness = 0;
             Chromosome chrmsm = Population[index];
-            Schedule schedule = new Schedule(chrmsm.Genes);
+            Schedule schedule = new Schedule();
+            schedule.GetSchedule(chrmsm.Genes);
 
             Data.objetiveFunction objetive = (Data.objetiveFunction) Data.objectiveCase;
 
@@ -133,9 +210,6 @@ namespace GeneticAlgorithm
                     break;
                 case Data.objetiveFunction.Makespan:
                     fitness = schedule.makespan;
-                    break;
-                case Data.objetiveFunction.Combined:
-                    fitness = Math.Pow(schedule.cost, 3) + Math.Pow(schedule.makespan, 3);
                     break;
             }
 
@@ -259,7 +333,8 @@ namespace GeneticAlgorithm
 
             }
 
-            child.schedule = new Schedule(child.Genes);
+            child.schedule = new Schedule();
+            child.schedule.GetSchedule(child.Genes);
             return child;
         }
 

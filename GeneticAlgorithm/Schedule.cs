@@ -8,39 +8,23 @@ namespace GeneticAlgorithm
 {
     public class Schedule
     {
-        public List<int> assignment { get; private set; }
-        public List<Machine> machines { get; private set; }
-        public List<Job> jobs { get; private set; }
-        public double cost { get; private set; }
-        public double makespan { get; private set; }
-        public bool isFeasible { get; private set; }
+        public List<int> assignment { get;  set; }
+        public List<Machine> machines { get;  set; }
+        public List<Job> jobs { get;  set; }
+        public double cost { get; set; }
+        public double makespan { get;  set; }
+        public bool isFeasible { get;  set; }
 
         // Construtor
-        public Schedule(List<int> assignment)
+        public Schedule()
         {
             // Initialize a new list of Machines
             machines = Data.InitMachines();
             // Initialize a new list of Jobs
             jobs = Data.InitJobs();
-
-            this.assignment = assignment;
-
-            isFeasible = false;
-
-
-            for (int j = 0; j  < jobs.Count; j ++)
-            {
-                // Assgin a fresh Machine to the Job
-                Assign(machines[assignment[j]], jobs[j]);
-                cost += Data.costs[assignment[j], j];
-                isFeasible = true;
-            }
-
-            makespan = jobs.Select(x => x.completeTime).Max();
-
         }
 
-        private void Assign(Machine machine, Job job)
+        public void Assign(Machine machine, Job job)
         {
 
             double processingTime;
@@ -57,6 +41,23 @@ namespace GeneticAlgorithm
             // Push job to assignedJobs list
             machine.assignedJobs.Add(job);
 
+        }
+
+        public void GetSchedule(List<int> assignment)
+        {
+            this.assignment = assignment;
+
+            isFeasible = false;
+
+            for (int j = 0; j < jobs.Count; j++)
+            {
+                // Assgin a fresh Machine to the Job
+                Assign(machines[assignment[j]], jobs[j]);
+                cost += Data.cost_mat[assignment[j], j];
+                isFeasible = true;
+            }
+
+            makespan = jobs.Select(x => x.completeTime).Max();
         }
     }
 }

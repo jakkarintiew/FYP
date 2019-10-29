@@ -12,14 +12,15 @@ namespace GeneticAlgorithm
         public double readyTime { get; set; }
         public double procRate { get; private set; }
         public List<Job> assignedJobs { get; set; }
-
+        public double[,] downTimes { get; set; }
 
         // Construtor
-        public Machine(int index, double readyTime, double procRate)
+        public Machine(int index, double readyTime, double procRate, double[,] downTimes)
         {
             this.index = index;
             this.readyTime = readyTime;
             this.procRate = procRate;
+            this.downTimes = downTimes;
             assignedJobs = new List<Job>();
         }
     }

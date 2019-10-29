@@ -19,3 +19,6 @@ C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csp
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.CoreCompileInputs.cache
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.exe
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.pdb
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\MathNet.Numerics.dll
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\MathNet.Numerics.xml
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.CopyComplete

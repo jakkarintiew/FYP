@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MathNet.Numerics.Random;
+
 
 
 namespace GeneticAlgorithm
@@ -14,14 +16,14 @@ namespace GeneticAlgorithm
         // Fitness of each individual
         public double Fitness { get; private set; }
 
-        private Random random;
+        private Mcg59 random;
         private Func<List<int>> getRandomGenes;
         private Func<int, double> fitnessFunction;
 
         // Construtor
         public Chromosome(
             int size,
-            Random random,
+            Mcg59 random,
             Func<List<int>> getRandomGenes,
             Func<int, double> fitnessFunction,
             bool shouldInitGenes = true)
@@ -36,7 +38,8 @@ namespace GeneticAlgorithm
             if (shouldInitGenes)
             {
                 Genes = getRandomGenes();
-                schedule = new Schedule(Genes);
+                schedule = new Schedule();
+                schedule.GetSchedule(Genes);
             }
 
         }

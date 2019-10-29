@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace GeneticAlgorithm
 {
@@ -18,7 +18,7 @@ namespace GeneticAlgorithm
             // Print problem description
             Console.WriteLine("====== Assignment Problem Description ======");
             Console.WriteLine("Costs matrix: ");
-            Print2DArray(Data.costs);
+            Print2DArray(Data.cost_data);
             Console.WriteLine("\n");
             Console.WriteLine("Number of workers: {0}", Data.num_machines);
             Console.WriteLine("Number of jobs: {0}", Data.num_jobs);
@@ -29,7 +29,8 @@ namespace GeneticAlgorithm
         {
             // Prevent cursor flickering
             Console.CursorVisible = false;
-            Schedule bestSchedule = new Schedule(ga.BestGenes);
+            Schedule bestSchedule = new Schedule();
+            bestSchedule.GetSchedule(ga.BestGenes);
 
             // Print current best genes
             sb = new StringBuilder();
@@ -50,7 +51,8 @@ namespace GeneticAlgorithm
             
         public void PrintResult(GA ga, string elapsedTime)
         {
-            Schedule bestSchedule = new Schedule(ga.BestGenes);
+            Schedule bestSchedule = new Schedule();
+            bestSchedule.GetSchedule(ga.BestGenes);
 
             // Print solution and run time
             Console.SetCursorPosition(0, Console.CursorTop + sb.ToString().Count(c => c == '\n') + 2);
@@ -83,6 +85,7 @@ namespace GeneticAlgorithm
             }
             Console.WriteLine("------------------------");
         }
+
 
         private void Print2DArray<T>(T[,] matrix)
         {
