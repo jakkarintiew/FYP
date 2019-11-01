@@ -22,33 +22,33 @@ namespace GeneticAlgorithm
         public static Matrix<double> cost_mat = Matrix<double>.Build.DenseOfArray(cost_data);
 
         public static Object[,] machine_data = new Object[,] {
-                { 0, 220.716, 6.462,  new double[,] { { 90.399 , 108.044 }, { 364.461, 378.898 }, { 474.871, 494.333 } }  },
-                { 1, 310.092, 10.059, new double[,] { { 80.625, 97.312 } } },
-                { 2, 620.403, 11.543, new double[,] { { 251.674, 272.389 }, { 368.700, 384.277 } } },
-                { 3, 600.032, 11.756, new double[,] { { 1,453.419, 1,463.994 }, { 1,884.284, 1,896.789 } } },
-                { 4, 320.725, 14.207, new double[,] { { 1,062.703, 1,073.256 } } }
+            { 0, 460.000, 9.655,  true,  false, "notdedicated", new double[,] { { 90.307, 103.063 }, }, },
+            { 1, 300.741, 14.544, true,  true,  "shipper1",     new double[,] { { 1388.712, 1820.366 },{ 241.304, 259.060 },{ 272.367, 291.568 }, }, },
+            { 2, 440.405, 5.228,  true,  true,  "shipper2",     new double[,] { { 4151.996, 4257.232 },{ 538.355, 554.802 }, }, },
+            { 3, 650.204, 12.630, true,  false, "notdedicated", new double[,] { { 6111.380, 6701.792 }, }, },
+            { 4, 700.747, 5.113,  false, false, "notdedicated", new double[,] { { 9875.418, 10861.447 },{ 376.868, 393.852 }, }, }
         };
 
         public static int num_machines = machine_data.GetLength(0);
         public static List<Machine> machines = InitMachines();
 
         public static Object[,] job_data = new Object[,] {
-                { 0, 561.257, 458.844 },
-                { 1, 89.907, 546.079 },
-                { 2, 61.677, 871.440 },
-                { 3, 183.935, 882.870 },
-                { 4, 675.026, 293.000 },
-                { 5, 604.260, 538.616 },
-                { 6, 738.316, 862.209 },
-                { 7, 343.078, 586.738 },
-                { 8, 144.777, 301.003 },
-                { 9, 892.413, 680.100 },
-                { 10, 361.408, 537.685 },
-                { 11, 412.792, 120.888 },
-                { 12, 257.113, 419.330 },
-                { 13, 961.996, 501.080 },
-                { 14, 879.388, 877.565 }
-            };
+            { 0, 709.932, 967.432,  true,   false,  "shipper3" },
+            { 1, 541.507, 147.008,  true,   false,   "shipper0" },
+            { 2, 483.067, 852.524,  true,   false,   "shipper0" },
+            { 3, 167.112, 424.952,  false,  false,   "shipper0" },
+            { 4, 348.245, 401.542,  true,   true,   "shipper2" },
+            { 5, 526.744, 326.555,  false,  false,  "shipper3" },
+            { 6, 109.975, 99.873,   true,   false,  "shipper3" },
+            { 7, 293.098, 784.406,  true,   true,   "shipper1" },
+            { 8, 674.455, 685.312,  true,   true,   "shipper2" },
+            { 9, 912.865, 275.880,  false,  true,   "shipper1" },
+            { 10, 725.525, 289.031, false,  true,   "shipper2" },
+            { 11, 672.642, 690.041, true,   false,  "shipper4" },
+            { 12, 266.193, 995.992, true,   false,  "shipper4" },
+            { 13, 976.884, 87.941,  true,   false,  "shipper4" },
+            { 14, 452.973, 393.811, false,  false,  "shipper3" },
+        };
         public static int num_jobs = job_data.GetLength(0);
         public static List<Job> jobs = InitJobs();
 
@@ -74,10 +74,13 @@ namespace GeneticAlgorithm
             for (int i = 0; i < machine_data.GetLength(0); i++)
             {
                 machines.Add(new Machine(
-                    index: (int)machine_data[i, 0], 
-                    readyTime: (double)machine_data[i, 1], 
+                    index: (int)machine_data[i, 0],
+                    readyTime: (double)machine_data[i, 1],
                     procRate: (double)machine_data[i, 2],
-                    downTimes: (double[,])machine_data[i,3]
+                    isGearAccepting: (bool)machine_data[i, 3],
+                    isDedicated: (bool)machine_data[i, 4],
+                    dedicated: (string)machine_data[i, 5],
+                    downTimes: (double[,])machine_data[i, 6]
                     ));
             }
             return machines;
@@ -88,7 +91,14 @@ namespace GeneticAlgorithm
             List<Job> jobs = new List<Job>();
             for (int i = 0; i < job_data.GetLength(0); i++)
             {
-                jobs.Add(new Job(index: (int)job_data[i, 0], readyTime: (double)job_data[i, 1], quantity: (double)job_data[i, 2]));
+                jobs.Add(new Job(
+                    index: (int)job_data[i, 0], 
+                    readyTime: (double)job_data[i, 1], 
+                    quantity: (double)job_data[i, 2],
+                    isGeared: (bool)job_data[i, 3],
+                    isDedicated: (bool)job_data[i, 4],
+                    shipper: (string)job_data[i, 5]
+                    ));
             }
             return jobs.OrderBy(o => o.readyTime).ToList(); ;
         }

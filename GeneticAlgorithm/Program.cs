@@ -48,9 +48,11 @@ namespace GeneticAlgorithm
             string appVersion = "1.0.0";
             string appAuthor = "Jakkarin Sae-Tiew";
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("{0}: Version {1} by {2}\n", appName, appVersion, appAuthor);
-            Console.ResetColor();
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("{0}: Version {1} by {2}\n", appName, appVersion, appAuthor);
+            PrintColourMessage(ConsoleColor.Green, sb.ToString());
+
         }
 
         // Print color message

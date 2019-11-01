@@ -16,13 +16,13 @@ namespace GeneticAlgorithm
         public void PrintProblemDescription()
         {
             // Print problem description
-            Console.WriteLine("====== Assignment Problem Description ======");
-            Console.WriteLine("Costs matrix: ");
-            Print2DArray(Data.cost_data);
-            Console.WriteLine("\n");
+            Console.WriteLine("======================= Assignment Problem Description =======================");
+            //Console.WriteLine("Costs matrix: ");
+            //Print2DArray(Data.cost_data);
+            //Console.WriteLine("\n");
             Console.WriteLine("Number of workers: {0}", Data.num_machines);
             Console.WriteLine("Number of jobs: {0}", Data.num_jobs);
-            Console.WriteLine("============================================");
+            Console.WriteLine("==============================================================================");
         }
 
         public void PrintCurrentGen(GA ga)
@@ -34,7 +34,7 @@ namespace GeneticAlgorithm
 
             // Print current best genes
             sb = new StringBuilder();
-            sb.AppendLine("-------------------------------");
+            sb.AppendLine("------------------------------------------------------------------------");
             sb.AppendFormat("Current Generation:    {0}     \n", ga.Generation);
             sb.AppendFormat("Current Assignment:    [ {0} ] \n", string.Join(", ", ga.BestGenes));
             sb.AppendFormat("Fitness Fucntion:      {0}     \n", Enum.GetName(typeof(Data.objetiveFunction), Data.objectiveCase));
@@ -44,7 +44,7 @@ namespace GeneticAlgorithm
             sb.AppendFormat("Current Makespan:      {0}     \n", bestSchedule.makespan);
             sb.AppendFormat("Population Size:       {0}     \n", ga.Population.Count);
             sb.AppendFormat("Mutation Rate:         {0}     \n", Data.mutationRate);
-            sb.AppendLine("-------------------------------");
+            sb.AppendLine("------------------------------------------------------------------------");
             Console.Write(sb);
             Console.SetCursorPosition(0, Console.CursorTop - sb.ToString().Count(c => c == '\n'));
         }
@@ -56,7 +56,7 @@ namespace GeneticAlgorithm
 
             // Print solution and run time
             Console.SetCursorPosition(0, Console.CursorTop + sb.ToString().Count(c => c == '\n') + 2);
-            Console.WriteLine("========= Result =========");
+            Console.WriteLine("=================================== Result ===================================");
             Console.WriteLine("Generation:          {0}",            ga.Generation);
             Console.WriteLine("Assignment:          [ {0} ]",        String.Join(", ", ga.BestGenes));
             Console.WriteLine("Best Fitness:        {0}",          ga.BestFitness);
@@ -65,38 +65,63 @@ namespace GeneticAlgorithm
             Console.WriteLine("Population Size:     {0}",  ga.Population.Count);
             Console.WriteLine("RunTime:             {0}",               elapsedTime);
             PrintSchedule(bestSchedule);
-            Console.WriteLine("==========================\n");
+            Console.WriteLine("==============================================================================\n");
         }
 
         public void PrintSchedule(Schedule schedule)
         {
-            Console.WriteLine("------- Schedule -------");
+            Console.WriteLine("------------------------------- Schedule -------------------------------");
             for (int i = 0; i < schedule.machines.Count; i++)
             {
-                Console.WriteLine("Machine {0} Job list: [ {1} ]", schedule.machines[i].index, string.Join(",", schedule.machines[i].assignedJobs.Select(x => x.index)));
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("Machine {0}", schedule.machines[i].index);
+                PrintColourMessage(ConsoleColor.Cyan, sb.ToString());
+
+                Console.WriteLine("Down times:"); Print2DArray( schedule.machines[i].downTimes, "  ->  ");
+                Console.WriteLine("Accepting geared job: {0}",  schedule.machines[i].isGearAccepting);
+                Console.WriteLine("Dedicated shipper: {0}",     schedule.machines[i].dedicated);
+                Console.WriteLine("Job list: [ {0} ]", string.Join(",", schedule.machines[i].assignedJobs.Select(x => x.index)));
+
                 for (int j = 0; j < schedule.machines[i].assignedJobs.Count; j++)
                 {
-                    Console.WriteLine("Job {0,-5} Ready Time = {1,-10} Start Time = {2,-10} Complete Time = {3,-10}",
+                    Console.WriteLine("Job {0,-5} Geared = {1,-6} Dedicated = {2, -6} Shipper = {3,-10} Ready Time = {4,-10} Start Time = {5,-15} Complete Time = {6,-15}",
                         schedule.machines[i].assignedJobs[j].index + ":",
+                        schedule.machines[i].assignedJobs[j].isGeared,
+                        schedule.machines[i].assignedJobs[j].isDedicated,
+                        schedule.machines[i].assignedJobs[j].shipper,
                         schedule.machines[i].assignedJobs[j].readyTime,
                         schedule.machines[i].assignedJobs[j].startTime,
                         schedule.machines[i].assignedJobs[j].completeTime);
                 }
+                Console.WriteLine(" ");
             }
-            Console.WriteLine("------------------------");
+
+            Console.WriteLine("------------------------------------------------------------------------");
         }
 
 
-        private void Print2DArray<T>(T[,] matrix)
+        public void Print2DArray<T>(T[,] matrix, string delim)
         {
             for (int i = 0; i < matrix.GetLength(0); i++)
             {
                 for (int j = 0; j < matrix.GetLength(1); j++)
                 {
-                    Console.Write(matrix[i, j] + "\t");
+                    Console.Write("{0,-6}", matrix[i, j]);
+                    if (j < matrix.GetLength(1)-1)
+                    {
+                        Console.Write(delim);
+                    }
                 }
                 Console.WriteLine();
             }
+        }
+
+        // Print color message
+        static void PrintColourMessage(ConsoleColor color, string message)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(message);
+            Console.ResetColor();
         }
     }
 }

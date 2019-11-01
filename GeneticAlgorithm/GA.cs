@@ -153,9 +153,28 @@ namespace GeneticAlgorithm
                         //   3: 0.40 }
 
                         int indexSelectedMachine = DiceRollSelection(dict);
-                        assignment.Add(indexSelectedMachine);
-                        schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                        schedule.cost += Data.cost_mat[indexSelectedMachine, j];
+                        bool isFeasible = false;
+                        while (!isFeasible)
+                        {
+                            indexSelectedMachine = DiceRollSelection(dict);
+                            if (schedule.machines[indexSelectedMachine].isGearAccepting)
+                            {
+                                schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                                assignment.Add(indexSelectedMachine);
+                                schedule.cost += Data.cost_mat[indexSelectedMachine, j];
+                                isFeasible = true;
+                            }
+                            else if (!schedule.machines[indexSelectedMachine].isGearAccepting && !schedule.jobs[j].isGeared)
+                            {
+                                schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                                assignment.Add(indexSelectedMachine);
+                                schedule.cost += Data.cost_mat[indexSelectedMachine, j];
+                                isFeasible = true;
+                            }
+                        }
+
+
+
                     }
                     break;
                 case Data.objetiveFunction.Makespan:
@@ -174,9 +193,53 @@ namespace GeneticAlgorithm
                         //Console.WriteLine("prob_vector: [ {0} ]", string.Join(", ", prob_vector));
                         //Console.WriteLine("indexSelectedMachine: {0} \n", indexSelectedMachine);
 
-                        assignment.Add(indexSelectedMachine);
-                        schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                        schedule.cost += Data.cost_mat[indexSelectedMachine, j];
+                        bool isFeasible = false;
+                        int counter = 0;
+                        while (!isFeasible)
+                        {
+                            //counter = counter + 1;
+                            //Console.WriteLine(counter);
+                            indexSelectedMachine = DiceRollSelection(dict);
+                            if (schedule.machines[indexSelectedMachine].isGearAccepting)
+                            {
+
+                                if (!schedule.jobs[j].isDedicated)
+                                {
+                                    schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                                    assignment.Add(indexSelectedMachine);
+                                    isFeasible = true;
+                                }
+                                else
+                                {
+                                    if (schedule.machines[indexSelectedMachine].dedicated == schedule.jobs[j].shipper)
+                                    {
+                                        schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                                        assignment.Add(indexSelectedMachine);
+                                        isFeasible = true;
+                                    }
+                                }
+
+                            }
+                            else if (!schedule.jobs[j].isGeared)
+                            {
+
+                                if (!schedule.jobs[j].isDedicated)
+                                {
+                                    schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                                    assignment.Add(indexSelectedMachine);
+                                    isFeasible = true;
+                                }
+                                else
+                                {
+                                    if (schedule.machines[indexSelectedMachine].dedicated == schedule.jobs[j].shipper)
+                                    {
+                                        schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                                        assignment.Add(indexSelectedMachine);
+                                        isFeasible = true;
+                                    }
+                                }
+                            }
+                        }
                     }
                     break;
             }
@@ -341,7 +404,6 @@ namespace GeneticAlgorithm
         // Mutation function: simply get a random new gene
         public Chromosome Mutate(Chromosome chromosome, float mutationRate)
         {
-
             if (random.NextDouble() < mutationRate)
             {
                 // Generate a random gene

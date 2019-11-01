@@ -33,7 +33,6 @@ namespace GeneticAlgorithm
 
             printer.PrintProblemDescription();
 
-
             // Update algorithm until stopping conditions are met:
             // Condition 1: if total number of generation reaches a threshold
             // Condition 2: if number of generation where the fitness remained constant reaches a threshold

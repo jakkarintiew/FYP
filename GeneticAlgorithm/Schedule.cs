@@ -22,6 +22,7 @@ namespace GeneticAlgorithm
             machines = Data.InitMachines();
             // Initialize a new list of Jobs
             jobs = Data.InitJobs();
+            isFeasible = false;
         }
 
         public void Assign(Machine machine, Job job)
@@ -33,7 +34,7 @@ namespace GeneticAlgorithm
 
             // Calculate time needed to process Job (quantity * time needed per unit quanitit)
             processingTime = job.quantity * machine.procRate;
-            job.completeTime = job.startTime + processingTime;
+            GetJobCompleteTime(machine, job, processingTime);
 
             // Update new readyTime for machine
             machine.readyTime = job.completeTime;
@@ -41,6 +42,30 @@ namespace GeneticAlgorithm
             // Push job to assignedJobs list
             machine.assignedJobs.Add(job);
 
+        }
+
+        public void GetJobCompleteTime(Machine machine, Job job, double processingTime)
+        {
+            job.completeTime = job.startTime + processingTime;
+
+            for (int i = 0; i < machine.downTimes.GetLength(0); i++)
+            {
+                if (job.startTime <= machine.downTimes[i, 0])
+                {
+                    if (job.completeTime >= machine.downTimes[i, 0])
+                    {
+                        processingTime = processingTime + machine.downTimes[i, 1] - machine.downTimes[i, 0];
+                    }
+                }
+                else if (job.startTime >= machine.downTimes[i, 0] && job.startTime <= machine.downTimes[i, 1])
+                {
+                    job.startTime = machine.downTimes[i, 1];
+                }
+            }
+
+            job.completeTime = job.startTime + processingTime;
+
+            return;
         }
 
         public void GetSchedule(List<int> assignment)
