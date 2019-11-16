@@ -15,14 +15,15 @@ namespace GeneticAlgorithm
         public double makespan { get;  set; }
         public bool isFeasible { get;  set; }
 
+        public bool gearFeasible { get; set; }
+        public  bool dedicationFeasible { get; set; }
+
+
         // Construtor
         public Schedule()
         {
-            // Initialize a new list of Machines
             machines = Data.InitMachines();
-            // Initialize a new list of Jobs
             jobs = Data.InitJobs();
-            isFeasible = false;
         }
 
         public void Assign(Machine machine, Job job)
@@ -34,7 +35,7 @@ namespace GeneticAlgorithm
 
             // Calculate time needed to process Job (quantity * time needed per unit quanitit)
             processingTime = job.quantity * machine.procRate;
-            GetJobCompleteTime(machine, job, processingTime);
+            job.completeTime = GetJobCompleteTime(machine, job, processingTime);
 
             // Update new readyTime for machine
             machine.readyTime = job.completeTime;
@@ -44,7 +45,7 @@ namespace GeneticAlgorithm
 
         }
 
-        public void GetJobCompleteTime(Machine machine, Job job, double processingTime)
+        public double GetJobCompleteTime(Machine machine, Job job, double processingTime)
         {
             job.completeTime = job.startTime + processingTime;
 
@@ -63,26 +64,126 @@ namespace GeneticAlgorithm
                 }
             }
 
-            job.completeTime = job.startTime + processingTime;
-
-            return;
+            return job.startTime + processingTime;
         }
 
         public void GetSchedule(List<int> assignment)
         {
             this.assignment = assignment;
-
-            isFeasible = false;
+            gearFeasible = true;
+            dedicationFeasible = true;
 
             for (int j = 0; j < jobs.Count; j++)
             {
-                // Assgin a fresh Machine to the Job
                 Assign(machines[assignment[j]], jobs[j]);
                 cost += Data.cost_mat[assignment[j], j];
-                isFeasible = true;
+                if (!GearedContraintCheck(jobs[j].assignedMachine, jobs[j]))
+                {
+                    gearFeasible = false;
+
+                }
+
+                if (!FlexDedicationContraintCheck(jobs[j].assignedMachine, jobs[j]))
+                {
+                    dedicationFeasible = false;
+                }
             }
 
+            if (gearFeasible && dedicationFeasible)
+            {
+                isFeasible = true;
+            }
+            else
+            {
+                isFeasible = false;
+            }
+
+            SwapByPriority();
+
             makespan = jobs.Select(x => x.completeTime).Max();
+        }
+
+        public bool GearedContraintCheck(Machine machine, Job job)
+        {
+            if (job.isGeared)
+            {
+                if (machine.isGearAccepting)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            } else
+
+            return true;
+        }
+
+        public bool FlexDedicationContraintCheck(Machine machine, Job job)
+        {
+            if (job.isDedicated)
+            {
+                if (!machine.isDedicated)
+                {
+                    return false;
+                }
+                else if (machine.dedicatedCustomer != job.shipper)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool StrictDedicationContraintCheck(Machine machine, Job job)
+        {
+            if (job.isDedicated)
+            {
+                if (machine.dedicatedCustomer == job.shipper)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            if (machine.isDedicated)
+            {
+                if (machine.dedicatedCustomer == job.shipper)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public void SwapByPriority()
+        {
+            for (int i = 0; i < machines.Count; i++)
+            {
+                for (int j = 0; j < machines[i].assignedJobs.Count; j++)
+                {
+                    if (j > 0 && Math.Abs(machines[i].assignedJobs[j].readyTime - machines[i].assignedJobs[j-1].readyTime) < 10800)
+                    {
+                        if (machines[i].assignedJobs[j].priority > machines[i].assignedJobs[j-1].priority)
+                        {
+                            //Console.WriteLine("SWAP");
+                            Job tmp = machines[i].assignedJobs[j];
+                            machines[i].assignedJobs[j] = machines[i].assignedJobs[j-1];
+                            machines[i].assignedJobs[j-1] = tmp;
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -17,9 +17,10 @@ namespace GeneticAlgorithm
         public Machine assignedMachine { get; set; }
         public double startTime { get; set; }
         public double completeTime { get; set; }
+        public int priority { get; private set; }
 
         // Construtor
-        public Job(int index, double readyTime, double quantity, bool isGeared, bool isDedicated, string shipper)
+        public Job(int index, double readyTime, double quantity, bool isGeared, bool isDedicated, string shipper, int priority)
         {
             this.index = index;
             this.readyTime = readyTime;
@@ -27,6 +28,7 @@ namespace GeneticAlgorithm
             this.isGeared = isGeared;
             this.isDedicated = isDedicated;
             this.shipper = shipper;
+            this.priority = priority;
         }
     }
 }

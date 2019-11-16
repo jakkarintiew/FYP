@@ -12,59 +12,63 @@ namespace GeneticAlgorithm
         // Problem static data
         public static double[,] cost_data = 
         {
-            { 100, 55, 155, 160, 195, 175, 130, 35, 185, 245, 95, 195, 125, 145, 45 },
-            { 40, 25, 65, 160, 175, 245, 35, 230, 205, 245, 55, 50, 235, 30, 35 },
-            { 210, 65, 245, 100, 25, 80, 190, 180, 80, 120, 135, 110, 155, 190, 25 },
-            { 200, 35, 175, 205, 150, 140, 85, 235, 235, 175, 200, 120, 235, 150, 195 },
-            { 165, 90, 165, 135, 65, 185, 40, 145, 185, 215, 235, 250, 215, 250, 190 }
+            { 55, 225, 195, 125, 125, 175, 140, 105, 105, 210, 85, 90, 220, 145, 245 },
+            { 215, 55, 100, 175, 225, 125, 105, 140, 250, 60, 235, 250, 120, 210, 120 },
+            { 65, 120, 115, 245, 45, 175, 90, 190, 230, 45, 180, 100, 180, 200, 145 },
+            { 175, 40, 150, 65, 145, 195, 125, 190, 80, 160, 45, 195, 150, 70, 200 }
         };
 
         public static Matrix<double> cost_mat = Matrix<double>.Build.DenseOfArray(cost_data);
 
         public static Object[,] machine_data = new Object[,] {
-            { 0, 460.000, 9.655,  true,  false, "notdedicated", new double[,] { { 90.307, 103.063 }, }, },
-            { 1, 300.741, 14.544, true,  true,  "shipper1",     new double[,] { { 1388.712, 1820.366 },{ 241.304, 259.060 },{ 272.367, 291.568 }, }, },
-            { 2, 440.405, 5.228,  true,  true,  "shipper2",     new double[,] { { 4151.996, 4257.232 },{ 538.355, 554.802 }, }, },
-            { 3, 650.204, 12.630, true,  false, "notdedicated", new double[,] { { 6111.380, 6701.792 }, }, },
-            { 4, 700.747, 5.113,  false, false, "notdedicated", new double[,] { { 9875.418, 10861.447 },{ 376.868, 393.852 }, }, }
+            { 0, 150.745, 3.926, true, true, "shipper1", new double[,] { { 3099.885, 85930.178 },{ 95559.275, 180312.269 },{ 184097.686, 266858.210 }, }, },
+            { 1, 120.512, 3.366, true, true, "shipper4", new double[,] { { 2916.794, 82975.707 },{ 66913.276, 151804.031 },{ 125923.664, 208509.097 }, }, },
+            { 2, 200.876, 3.156, true, false, "notdedicated", new double[,] { { 4941.350, 86907.137 },{ 98184.366, 180862.197 },{ 173789.128, 257985.301 }, }, },
+            { 3, 10.962, 4.563, false, false, "notdedicated", new double[,] { { 3952.166, 85535.972 },{ 96250.919, 176489.293 },{ 185258.489, 267339.117 }, }, },
+
         };
 
         public static int num_machines = machine_data.GetLength(0);
         public static List<Machine> machines = InitMachines();
 
         public static Object[,] job_data = new Object[,] {
-            { 0, 709.932, 967.432,  true,   false,  "shipper3" },
-            { 1, 541.507, 147.008,  true,   false,   "shipper0" },
-            { 2, 483.067, 852.524,  true,   false,   "shipper0" },
-            { 3, 167.112, 424.952,  false,  false,   "shipper0" },
-            { 4, 348.245, 401.542,  true,   true,   "shipper2" },
-            { 5, 526.744, 326.555,  false,  false,  "shipper3" },
-            { 6, 109.975, 99.873,   true,   false,  "shipper3" },
-            { 7, 293.098, 784.406,  true,   true,   "shipper1" },
-            { 8, 674.455, 685.312,  true,   true,   "shipper2" },
-            { 9, 912.865, 275.880,  false,  true,   "shipper1" },
-            { 10, 725.525, 289.031, false,  true,   "shipper2" },
-            { 11, 672.642, 690.041, true,   false,  "shipper4" },
-            { 12, 266.193, 995.992, true,   false,  "shipper4" },
-            { 13, 976.884, 87.941,  true,   false,  "shipper4" },
-            { 14, 452.973, 393.811, false,  false,  "shipper3" },
+        { 0, 1178.551, 8039.669, true, false, "shipper2", 3 },
+        { 1, 16780.551, 1331.752, false, false, "shipper5", 5 },
+        { 2, 30207.551, 6913.044, false, true, "shipper4", 2 },
+        { 3, 39577.551, 7169.225, true, true, "shipper4", 1 },
+        { 4, 83968.551, 1129.289, false, true, "shipper4", 2 },
+        { 5, 94519.551, 9131.787, true, true, "shipper1", 8 },
+        { 6, 104016.551, 1462.044, false, true, "shipper1", 9 },
+        { 7, 136882.551, 1363.404, false, false, "shipper2", 3 },
+        { 8, 164387.551, 8561.048, false, false, "shipper3", 6 },
+        { 9, 195519.551, 8583.183, true, true, "shipper1", 7 },
+        { 10, 228817.551, 8325.638, true, false, "shipper0", 1 },
+        { 11, 246801.551, 6256.804, false, false, "shipper4", 9 },
+        { 12, 252034.551, 8684.176, false, false, "shipper5", 5 },
+        { 13, 289566.551, 5296.405, true, false, "shipper2", 6 },
+        { 14, 305336.551, 2686.404, false, false, "shipper0", 2 },
+
         };
         public static int num_jobs = job_data.GetLength(0);
         public static List<Job> jobs = InitJobs();
 
         // GA parameters
-        public static int populationSize = 500;
-        public static int numNewDNA = 100;
+        public static int populationSize = 200;
+        public static int numNewDNA = 40;
         public static float mutationRate = 0.05f;
         public static int elitism = 10;
 
         public enum crossoverFunction { Uniform, SinglePoint, TwoPoint}
         public static int crossoverMethod = 0;
+
         public enum objetiveFunction { TotalCost, Makespan }
         public static int objectiveCase = 1;
 
+        public enum dedicationType { Felxible, Strict}
+        public static int dedicationCase = 0;
+
         // Set stopping conditions
-        public static double solution = 890;
+        public static double solution = 0;
         public static int max_repeated_generations = 100;
         public static int max_generations = 200;
 
@@ -79,7 +83,7 @@ namespace GeneticAlgorithm
                     procRate: (double)machine_data[i, 2],
                     isGearAccepting: (bool)machine_data[i, 3],
                     isDedicated: (bool)machine_data[i, 4],
-                    dedicated: (string)machine_data[i, 5],
+                    dedicatedCustomer: (string)machine_data[i, 5],
                     downTimes: (double[,])machine_data[i, 6]
                     ));
             }
@@ -97,7 +101,8 @@ namespace GeneticAlgorithm
                     quantity: (double)job_data[i, 2],
                     isGeared: (bool)job_data[i, 3],
                     isDedicated: (bool)job_data[i, 4],
-                    shipper: (string)job_data[i, 5]
+                    shipper: (string)job_data[i, 5],
+                    priority: (int)job_data[i, 6]
                     ));
             }
             return jobs.OrderBy(o => o.readyTime).ToList(); ;

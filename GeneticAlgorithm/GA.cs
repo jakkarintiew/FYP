@@ -129,17 +129,20 @@ namespace GeneticAlgorithm
             List<int> assignment = new List<int>(new int[Data.num_jobs]);
             Schedule schedule = new Schedule();
 
-            Data.objetiveFunction objetive = (Data.objetiveFunction)Data.objectiveCase;
+            Data.objetiveFunction objetiveFunction = (Data.objetiveFunction)Data.objectiveCase;
+            Data.dedicationType dedicationType = (Data.dedicationType)Data.dedicationCase;
+
 
             Vector<double> target_column = Vector<double>.Build.Dense(Data.num_machines);
             Vector<double> transform_column = Vector<double>.Build.Dense(Data.num_machines);
             Vector<double> prob_vector = Vector<double>.Build.Dense(Data.num_machines);
             var machine_index = Enumerable.Range(0, Data.num_machines).ToList();
 
-            switch (objetive)
+            switch (objetiveFunction)
             {
                 case Data.objetiveFunction.TotalCost:
                     assignment.Clear();
+
                     for (int j = 0; j < Data.num_jobs; j++)
                     {
                         target_column = Data.cost_mat.Column(j);
@@ -153,29 +156,40 @@ namespace GeneticAlgorithm
                         //   3: 0.40 }
 
                         int indexSelectedMachine = DiceRollSelection(dict);
+
+                        //assignment.Add(indexSelectedMachine);
+
                         bool isFeasible = false;
                         while (!isFeasible)
                         {
                             indexSelectedMachine = DiceRollSelection(dict);
-                            if (schedule.machines[indexSelectedMachine].isGearAccepting)
+
+                            if (schedule.GearedContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
                             {
-                                schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                                assignment.Add(indexSelectedMachine);
-                                schedule.cost += Data.cost_mat[indexSelectedMachine, j];
-                                isFeasible = true;
-                            }
-                            else if (!schedule.machines[indexSelectedMachine].isGearAccepting && !schedule.jobs[j].isGeared)
-                            {
-                                schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                                assignment.Add(indexSelectedMachine);
-                                schedule.cost += Data.cost_mat[indexSelectedMachine, j];
-                                isFeasible = true;
+                                switch (dedicationType)
+                                {
+                                    case Data.dedicationType.Felxible:
+                                        if (schedule.FlexDedicationContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                                        {
+                                            schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                                            assignment.Add(indexSelectedMachine);
+                                            isFeasible = true;
+                                        }
+                                        break;
+                                    case Data.dedicationType.Strict:
+                                        if (schedule.StrictDedicationContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                                        {
+                                            schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                                            assignment.Add(indexSelectedMachine);
+                                            isFeasible = true;
+                                        }
+                                        break;
+                                }
+                                
                             }
                         }
-
-
-
                     }
+
                     break;
                 case Data.objetiveFunction.Makespan:
                     assignment.Clear();
@@ -194,63 +208,44 @@ namespace GeneticAlgorithm
                         //Console.WriteLine("indexSelectedMachine: {0} \n", indexSelectedMachine);
 
                         bool isFeasible = false;
-                        int counter = 0;
                         while (!isFeasible)
                         {
-                            //counter = counter + 1;
-                            //Console.WriteLine(counter);
                             indexSelectedMachine = DiceRollSelection(dict);
-                            if (schedule.machines[indexSelectedMachine].isGearAccepting)
-                            {
 
-                                if (!schedule.jobs[j].isDedicated)
+                            if (schedule.GearedContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                            {
+                                switch (dedicationType)
                                 {
-                                    schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                                    assignment.Add(indexSelectedMachine);
-                                    isFeasible = true;
-                                }
-                                else
-                                {
-                                    if (schedule.machines[indexSelectedMachine].dedicated == schedule.jobs[j].shipper)
-                                    {
-                                        schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                                        assignment.Add(indexSelectedMachine);
-                                        isFeasible = true;
-                                    }
+                                    case Data.dedicationType.Felxible:
+                                        if (schedule.FlexDedicationContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                                        {
+                                            schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                                            assignment.Add(indexSelectedMachine);
+                                            isFeasible = true;
+                                        }
+                                        break;
+                                    case Data.dedicationType.Strict:
+                                        if (schedule.StrictDedicationContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                                        {
+                                            schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                                            assignment.Add(indexSelectedMachine);
+                                            isFeasible = true;
+                                        }
+                                        break;
                                 }
 
                             }
-                            else if (!schedule.jobs[j].isGeared)
-                            {
 
-                                if (!schedule.jobs[j].isDedicated)
-                                {
-                                    schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                                    assignment.Add(indexSelectedMachine);
-                                    isFeasible = true;
-                                }
-                                else
-                                {
-                                    if (schedule.machines[indexSelectedMachine].dedicated == schedule.jobs[j].shipper)
-                                    {
-                                        schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                                        assignment.Add(indexSelectedMachine);
-                                        isFeasible = true;
-                                    }
-                                }
-                            }
                         }
                     }
                     break;
             }
-
 
             //assignment.Clear();
             //for (int j = 0; j < chromoSize; j++)
             //{
             //    assignment.Add(random.Next(0, Data.num_machines));
             //}
-
 
             schedule.assignment = assignment;
             schedule.GetSchedule(assignment);
@@ -266,14 +261,22 @@ namespace GeneticAlgorithm
 
             Data.objetiveFunction objetive = (Data.objetiveFunction) Data.objectiveCase;
 
-            switch (objetive)
+            if (schedule.isFeasible)
             {
-                case Data.objetiveFunction.TotalCost:
-                    fitness = schedule.cost;
-                    break;
-                case Data.objetiveFunction.Makespan:
-                    fitness = schedule.makespan;
-                    break;
+                switch (objetive)
+                {
+                    case Data.objetiveFunction.TotalCost:
+                        fitness = schedule.cost;
+                        break;
+                    case Data.objetiveFunction.Makespan:
+                        fitness = schedule.makespan;
+                        break;
+                }
+            }
+            else
+            {   
+                // Infeasible, eliminate
+                fitness = 1000000.00;
             }
 
             return fitness;

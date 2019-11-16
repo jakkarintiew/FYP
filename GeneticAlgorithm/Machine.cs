@@ -13,7 +13,7 @@ namespace GeneticAlgorithm
         public double procRate { get; private set; }
         public bool isGearAccepting { get; private set; }
         public bool isDedicated { get; private set; }
-        public string dedicated { get; private set; }
+        public string dedicatedCustomer { get; private set; }
         public double[,] downTimes { get; set; }
         public List<Job> assignedJobs { get; set; }
 
@@ -25,7 +25,7 @@ namespace GeneticAlgorithm
             double procRate, 
             bool isGearAccepting, 
             bool isDedicated, 
-            string dedicated, 
+            string dedicatedCustomer, 
             double[,] downTimes)
         {
             this.index = index;
@@ -33,7 +33,7 @@ namespace GeneticAlgorithm
             this.procRate = procRate;
             this.isGearAccepting = isGearAccepting;
             this.isDedicated = isDedicated;
-            this.dedicated = dedicated;
+            this.dedicatedCustomer = dedicatedCustomer;
             this.downTimes = downTimes;
             assignedJobs = new List<Job>();
         }
