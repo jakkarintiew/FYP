@@ -104,17 +104,23 @@ namespace GeneticAlgorithm
         }
 
 
-        private int DiceRollSelection(Dictionary<int, double> dict)
+        private int ProbabilityMachineSelection(Vector<double> target_column)
         {
-            double diceRoll = random.NextDouble();
+            var machine_index = Enumerable.Range(0, Data.num_machines).ToList();
+            Vector<double> transform_column = target_column.Sum() / target_column;
+            Vector<double> prob_vector  = transform_column / transform_column.Sum();
+            Dictionary<int, double>  dict = machine_index.Zip(prob_vector, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+
+            double randDouble = random.NextDouble();
             double cumulative = 0.0;
+
             for (int i = 0; i < dict.Count; i++)
             {
                 cumulative += dict[dict.Keys.ElementAt(i)];
-                if (diceRoll < cumulative)
+                if (randDouble < cumulative)
                 {
                     int selectedElement = dict.Keys.ElementAt(i);
-                    //Console.WriteLine("diceRoll: {0}", diceRoll);
+                    //Console.WriteLine("randDouble: {0}", randDouble);
                     return selectedElement;
                 }
             }
@@ -127,125 +133,59 @@ namespace GeneticAlgorithm
 
             // Array of n jobs, each element could be a worker index, i
             List<int> assignment = new List<int>(new int[Data.num_jobs]);
-            Schedule schedule = new Schedule();
+            Scheduler schedule = new Scheduler();
 
             Data.objetiveFunction objetiveFunction = (Data.objetiveFunction)Data.objectiveCase;
             Data.dedicationType dedicationType = (Data.dedicationType)Data.dedicationCase;
 
-
             Vector<double> target_column = Vector<double>.Build.Dense(Data.num_machines);
-            Vector<double> transform_column = Vector<double>.Build.Dense(Data.num_machines);
-            Vector<double> prob_vector = Vector<double>.Build.Dense(Data.num_machines);
-            var machine_index = Enumerable.Range(0, Data.num_machines).ToList();
+            assignment.Clear();
 
-            switch (objetiveFunction)
+            for (int j = 0; j < Data.num_jobs; j++)
             {
-                case Data.objetiveFunction.TotalCost:
-                    assignment.Clear();
-
-                    for (int j = 0; j < Data.num_jobs; j++)
-                    {
+                switch (objetiveFunction)
+                {
+                    case Data.objetiveFunction.TotalCost:
                         target_column = Data.cost_mat.Column(j);
-                        transform_column = target_column.Sum() / target_column;
-                        prob_vector = transform_column / transform_column.Sum();
-
-                        Dictionary<int, double> dict = machine_index.Zip(prob_vector, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
-                        // { 0: 0.15,
-                        //   1: 0.20,
-                        //   2: 0.25,
-                        //   3: 0.40 }
-
-                        int indexSelectedMachine = DiceRollSelection(dict);
-
-                        //assignment.Add(indexSelectedMachine);
-
-                        bool isFeasible = false;
-                        while (!isFeasible)
-                        {
-                            indexSelectedMachine = DiceRollSelection(dict);
-
-                            if (schedule.GearedContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
-                            {
-                                switch (dedicationType)
-                                {
-                                    case Data.dedicationType.Felxible:
-                                        if (schedule.FlexDedicationContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
-                                        {
-                                            schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                                            assignment.Add(indexSelectedMachine);
-                                            isFeasible = true;
-                                        }
-                                        break;
-                                    case Data.dedicationType.Strict:
-                                        if (schedule.StrictDedicationContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
-                                        {
-                                            schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                                            assignment.Add(indexSelectedMachine);
-                                            isFeasible = true;
-                                        }
-                                        break;
-                                }
-                                
-                            }
-                        }
-                    }
-
-                    break;
-                case Data.objetiveFunction.Makespan:
-                    assignment.Clear();
-                    for (int j = 0; j < Data.num_jobs; j++)
-                    {
+                        break;
+                    case Data.objetiveFunction.Makespan:
                         target_column = Vector<double>.Abs(Vector<double>.Build.Dense(Data.machines.Select(x => x.readyTime).ToArray()) - Data.jobs[j].readyTime);
-                        transform_column = target_column.Sum() / target_column;
-                        prob_vector = transform_column / transform_column.Sum();
+                        break;
+                }
 
-                        Dictionary<int, double> dict = machine_index.Zip(prob_vector, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
-                        int indexSelectedMachine = DiceRollSelection(dict);
+                bool isFeasible = false;
+                while (!isFeasible)
+                {
+                    int indexSelectedMachine = ProbabilityMachineSelection(target_column);
 
-                        //Console.WriteLine("target_column: [ {0} ]", string.Join(", ", target_column));
-                        //Console.WriteLine("transform_column: [ {0} ]", string.Join(", ", transform_column));
-                        //Console.WriteLine("prob_vector: [ {0} ]", string.Join(", ", prob_vector));
-                        //Console.WriteLine("indexSelectedMachine: {0} \n", indexSelectedMachine);
+                    if (schedule.IsFeasible(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                    {
 
-                        bool isFeasible = false;
-                        while (!isFeasible)
-                        {
-                            indexSelectedMachine = DiceRollSelection(dict);
-
-                            if (schedule.GearedContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
-                            {
-                                switch (dedicationType)
-                                {
-                                    case Data.dedicationType.Felxible:
-                                        if (schedule.FlexDedicationContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
-                                        {
-                                            schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                                            assignment.Add(indexSelectedMachine);
-                                            isFeasible = true;
-                                        }
-                                        break;
-                                    case Data.dedicationType.Strict:
-                                        if (schedule.StrictDedicationContraintCheck(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
-                                        {
-                                            schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                                            assignment.Add(indexSelectedMachine);
-                                            isFeasible = true;
-                                        }
-                                        break;
-                                }
-
-                            }
-
-                        }
                     }
-                    break;
-            }
 
-            //assignment.Clear();
-            //for (int j = 0; j < chromoSize; j++)
-            //{
-            //    assignment.Add(random.Next(0, Data.num_machines));
-            //}
+                    if (schedule.IsGearFeasible(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                    {
+                        switch (dedicationType)
+                        {
+                            case Data.dedicationType.Felxible:
+                                if (schedule.IsFlexDedicationFeasible(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                                {
+                                    assignment.Add(indexSelectedMachine);
+                                    isFeasible = true;
+                                }
+                                break;
+                            case Data.dedicationType.Strict:
+                                if (schedule.IsStrictDedicationFeasible(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                                {
+                                    assignment.Add(indexSelectedMachine);
+                                    isFeasible = true;
+                                }
+                                break;
+                        }
+
+                    }
+                }
+            }
 
             schedule.assignment = assignment;
             schedule.GetSchedule(assignment);
@@ -256,27 +196,19 @@ namespace GeneticAlgorithm
         {
             double fitness = 0;
             Chromosome chrmsm = Population[index];
-            Schedule schedule = new Schedule();
+            Scheduler schedule = new Scheduler();
             schedule.GetSchedule(chrmsm.Genes);
 
             Data.objetiveFunction objetive = (Data.objetiveFunction) Data.objectiveCase;
 
-            if (schedule.isFeasible)
+            switch (objetive)
             {
-                switch (objetive)
-                {
-                    case Data.objetiveFunction.TotalCost:
-                        fitness = schedule.cost;
-                        break;
-                    case Data.objetiveFunction.Makespan:
-                        fitness = schedule.makespan;
-                        break;
-                }
-            }
-            else
-            {   
-                // Infeasible, eliminate
-                fitness = 1000000.00;
+                case Data.objetiveFunction.TotalCost:
+                    fitness = schedule.cost;
+                    break;
+                case Data.objetiveFunction.Makespan:
+                    fitness = schedule.makespan;
+                    break;
             }
 
             return fitness;
@@ -313,7 +245,7 @@ namespace GeneticAlgorithm
             {
                 Population[i].CalculateFitness(i);
 
-                if (Population[i].Fitness < best.Fitness)
+                if (Population[i].Fitness <= best.Fitness)
                 {
                     best = Population[i];
                 }
@@ -399,7 +331,7 @@ namespace GeneticAlgorithm
 
             }
 
-            child.schedule = new Schedule();
+            child.schedule = new Scheduler();
             child.schedule.GetSchedule(child.Genes);
             return child;
         }

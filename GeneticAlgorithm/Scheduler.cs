@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GeneticAlgorithm
 {
-    public class Schedule
+    public class Scheduler
     {
         public List<int> assignment { get;  set; }
         public List<Machine> machines { get;  set; }
@@ -14,13 +14,12 @@ namespace GeneticAlgorithm
         public double cost { get; set; }
         public double makespan { get;  set; }
         public bool isFeasible { get;  set; }
-
         public bool gearFeasible { get; set; }
         public  bool dedicationFeasible { get; set; }
 
 
         // Construtor
-        public Schedule()
+        public Scheduler()
         {
             machines = Data.InitMachines();
             jobs = Data.InitJobs();
@@ -28,27 +27,21 @@ namespace GeneticAlgorithm
 
         public void Assign(Machine machine, Job job)
         {
-
-            double processingTime;
             job.assignedMachine = machine;
-            job.startTime = Math.Max(machine.readyTime, job.readyTime);
-
-            // Calculate time needed to process Job (quantity * time needed per unit quanitit)
-            processingTime = job.quantity * machine.procRate;
-            job.completeTime = GetJobCompleteTime(machine, job, processingTime);
-
-            // Update new readyTime for machine
-            machine.readyTime = job.completeTime;
-
-            // Push job to assignedJobs list
             machine.assignedJobs.Add(job);
-
         }
 
-        public double GetJobCompleteTime(Machine machine, Job job, double processingTime)
+        public void AssignSchedule(Machine machine, Job job)
         {
+
+            job.startTime = Math.Max(machine.latestReadyTime, job.readyTime);
+
+            // Calculate time needed to process Job (quantity * time needed per unit quanitit)
+            double processingTime = job.quantity * machine.procRate;
+
             job.completeTime = job.startTime + processingTime;
 
+            // Downtimes consideration
             for (int i = 0; i < machine.downTimes.GetLength(0); i++)
             {
                 if (job.startTime <= machine.downTimes[i, 0])
@@ -64,46 +57,66 @@ namespace GeneticAlgorithm
                 }
             }
 
-            return job.startTime + processingTime;
+            job.completeTime = job.startTime + processingTime;
+
+            // Update new readyTime for machine
+            machine.latestReadyTime = job.completeTime;
         }
 
         public void GetSchedule(List<int> assignment)
         {
             this.assignment = assignment;
-            gearFeasible = true;
-            dedicationFeasible = true;
 
             for (int j = 0; j < jobs.Count; j++)
             {
                 Assign(machines[assignment[j]], jobs[j]);
+                AssignSchedule(machines[assignment[j]], jobs[j]);
                 cost += Data.cost_mat[assignment[j], j];
-                if (!GearedContraintCheck(jobs[j].assignedMachine, jobs[j]))
-                {
-                    gearFeasible = false;
-
-                }
-
-                if (!FlexDedicationContraintCheck(jobs[j].assignedMachine, jobs[j]))
-                {
-                    dedicationFeasible = false;
-                }
-            }
-
-            if (gearFeasible && dedicationFeasible)
-            {
-                isFeasible = true;
-            }
-            else
-            {
-                isFeasible = false;
             }
 
             SwapByPriority();
-
+            GetEventSchedule();
             makespan = jobs.Select(x => x.completeTime).Max();
         }
 
-        public bool GearedContraintCheck(Machine machine, Job job)
+        public bool IsFeasible(Machine machine, Job job)
+        {
+            Data.objetiveFunction objetiveFunction = (Data.objetiveFunction)Data.objectiveCase;
+            Data.dedicationType dedicationType = (Data.dedicationType)Data.dedicationCase;
+
+            if (IsGearFeasible(machine, job))
+            {
+                switch (dedicationType)
+                {
+                    case Data.dedicationType.Felxible:
+                        if (IsFlexDedicationFeasible(machine, job))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    case Data.dedicationType.Strict:
+                        if (IsStrictDedicationFeasible(machine, job))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                }
+
+            }
+            else
+            {
+                return false;
+            }
+            return false;
+        }
+
+        public bool IsGearFeasible(Machine machine, Job job)
         {
             if (job.isGeared)
             {
@@ -120,7 +133,7 @@ namespace GeneticAlgorithm
             return true;
         }
 
-        public bool FlexDedicationContraintCheck(Machine machine, Job job)
+        public bool IsFlexDedicationFeasible(Machine machine, Job job)
         {
             if (job.isDedicated)
             {
@@ -137,7 +150,7 @@ namespace GeneticAlgorithm
             return true;
         }
 
-        public bool StrictDedicationContraintCheck(Machine machine, Job job)
+        public bool IsStrictDedicationFeasible(Machine machine, Job job)
         {
             if (job.isDedicated)
             {
@@ -166,6 +179,28 @@ namespace GeneticAlgorithm
             return true;
         }
 
+        public void GetEventSchedule()
+        {
+            for (int i = 0; i < machines.Count; i++)
+            {
+                for (int j = 0; j < machines[i].assignedJobs.Count; j++)
+                {
+                    machines[i].scheduledEvents.Add(new Event(
+                       type: "Job",
+                       startTime: machines[i].assignedJobs[j].startTime,
+                       endTime: machines[i].assignedJobs[j].completeTime,
+                       job: machines[i].assignedJobs[j]
+                       ));
+                }
+                machines[i].scheduledEvents = machines[i].scheduledEvents.OrderBy(o => o.startTime).ToList();
+                for (int k = 0; k < machines[i].scheduledEvents.Count; k++)
+                {
+                    machines[i].scheduledEvents[k].index = k;
+                }
+            }
+
+        }
+
         public void SwapByPriority()
         {
             for (int i = 0; i < machines.Count; i++)
@@ -182,6 +217,15 @@ namespace GeneticAlgorithm
                             machines[i].assignedJobs[j-1] = tmp;
                         }
                     }
+                }
+            }
+
+            for (int i = 0; i < machines.Count; i++)
+            {
+                machines[i].latestReadyTime = machines[i].readyTime;
+                for (int j = 0; j < machines[i].assignedJobs.Count; j++)
+                {
+                    AssignSchedule(machines[i], machines[i].assignedJobs[j]);
                 }
             }
         }

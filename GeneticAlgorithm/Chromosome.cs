@@ -11,7 +11,7 @@ namespace GeneticAlgorithm
     {
         // Gene is type int List
         public List<int> Genes { get; set; }
-        public Schedule schedule { get; set; }
+        public Scheduler schedule { get; set; }
 
         // Fitness of each individual
         public double Fitness { get; private set; }
@@ -38,7 +38,7 @@ namespace GeneticAlgorithm
             if (shouldInitGenes)
             {
                 Genes = getRandomGenes();
-                schedule = new Schedule();
+                schedule = new Scheduler();
                 schedule.GetSchedule(Genes);
             }
 

@@ -29,7 +29,7 @@ namespace GeneticAlgorithm
         {
             // Prevent cursor flickering
             Console.CursorVisible = false;
-            Schedule bestSchedule = new Schedule();
+            Scheduler bestSchedule = new Scheduler();
             bestSchedule.GetSchedule(ga.BestGenes);
 
             // Print current best genes
@@ -42,7 +42,7 @@ namespace GeneticAlgorithm
             sb.AppendFormat("Current Best Fitness:      {0}     \n", ga.BestFitness);
             sb.AppendFormat("Current Best Cost:         {0}     \n", bestSchedule.cost);
             sb.AppendFormat("Current Best Makespan:     {0}     \n", bestSchedule.makespan);
-            sb.AppendFormat("Current Best Feasibility:  {0}     \n", bestSchedule.isFeasible);
+            //sb.AppendFormat("Current Best Feasibility:  {0}     \n", bestSchedule.isFeasible);
             sb.AppendFormat("Population Size:           {0}     \n", ga.Population.Count);
             sb.AppendFormat("Mutation Rate:             {0}     \n", Data.mutationRate);
             sb.AppendLine("------------------------------------------------------------------------");
@@ -52,7 +52,7 @@ namespace GeneticAlgorithm
             
         public void PrintResult(GA ga, string elapsedTime)
         {
-            Schedule bestSchedule = new Schedule();
+            Scheduler bestSchedule = new Scheduler();
             bestSchedule.GetSchedule(ga.BestGenes);
 
             // Print solution and run time
@@ -63,14 +63,14 @@ namespace GeneticAlgorithm
             Console.WriteLine("Best Fitness:        {0}",   ga.BestFitness);
             Console.WriteLine("Cost:                {0}",   bestSchedule.cost);
             Console.WriteLine("Makespan:            {0}",   bestSchedule.makespan);
-            Console.WriteLine("Feasibility:         {0}",   bestSchedule.isFeasible);
+            //Console.WriteLine("Feasibility:         {0}",   bestSchedule.isFeasible);
             Console.WriteLine("Population Size:     {0}",   ga.Population.Count);
             Console.WriteLine("RunTime:             {0}",   elapsedTime);
             PrintSchedule(bestSchedule);
             Console.WriteLine("==============================================================================\n");
         }
 
-        public void PrintSchedule(Schedule schedule)
+        public void PrintSchedule(Scheduler schedule)
         {
             Console.WriteLine("------------------------------- Schedule -------------------------------");
             for (int i = 0; i < schedule.machines.Count; i++)
@@ -80,32 +80,87 @@ namespace GeneticAlgorithm
                 PrintColourMessage(ConsoleColor.Cyan, sb.ToString());
 
 
-                Console.WriteLine("Down times:"); Print2DArray( schedule.machines[i].downTimes, "  ->  ");
+                //Console.WriteLine("Down times:"); Print2DArray( schedule.machines[i].downTimes, "  ->  ");
                 Console.WriteLine("Accepting geared job: {0}",  schedule.machines[i].isGearAccepting);
                 Console.WriteLine("Dedicated shipper: {0}",     schedule.machines[i].dedicatedCustomer);
-                Console.WriteLine("Job list: [ {0} ]", string.Join(",", schedule.machines[i].assignedJobs.Select(x => x.index)));
 
-                Console.WriteLine("{0, -10} {1, -10} {2, -10} {3, -10} {4, -10} {5, -15} {6, -15} {7, -15}",
+                //Console.WriteLine("Job list: [ {0} ]", string.Join(",", schedule.machines[i].assignedJobs.Select(x => x.index)));
+
+                //Console.WriteLine("{0, -10} {1, -10} {2, -10} {3, -10} {4, -10} {5, -15} {6, -15} {7, -15}",
+                //    "Index",
+                //    "Geared",
+                //    "Dedicated",
+                //    "Shipper",
+                //    "Priority",
+                //    "Ready Time",
+                //    "Start Time",
+                //    "Complete Time");
+
+                //for (int j = 0; j < schedule.machines[i].assignedJobs.Count; j++)
+                //{
+                //    Console.WriteLine(
+                //        "{0, -10} {1, -10} {2, -10} {3, -10} {4, -10} {5, -15} {6, -15} {7, -15}",
+                //        schedule.machines[i].assignedJobs[j].index,
+                //        schedule.machines[i].assignedJobs[j].isGeared,
+                //        schedule.machines[i].assignedJobs[j].isDedicated,
+                //        schedule.machines[i].assignedJobs[j].shipper,
+                //        schedule.machines[i].assignedJobs[j].priority,
+                //        schedule.machines[i].assignedJobs[j].readyTime,
+                //        schedule.machines[i].assignedJobs[j].startTime,
+                //        schedule.machines[i].assignedJobs[j].completeTime
+                //        );
+                //}
+                //Console.WriteLine(" ");
+
+                Console.WriteLine(
+                    "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10}",
                     "Index",
+                    "Type",
+                    "Job Ready Time",
+                    "Start Time",
+                    "End Time",
+                    "Job Index",
+                    "Priority",
                     "Geared",
                     "Dedicated",
-                    "Shipper",
-                    "Priority",
-                    "Ready Time",
-                    "Start Time",
-                    "Complete Time");
+                    "Shipper"
+                    );
 
-                for (int j = 0; j < schedule.machines[i].assignedJobs.Count; j++)
+                for (int k = 0; k < schedule.machines[i].scheduledEvents.Count; k++)
                 {
-                    Console.WriteLine("{0, -10} {1, -10} {2, -10} {3, -10} {4, -10} {5, -15} {6, -15} {7, -15}",
-                        schedule.machines[i].assignedJobs[j].index,
-                        schedule.machines[i].assignedJobs[j].isGeared,
-                        schedule.machines[i].assignedJobs[j].isDedicated,
-                        schedule.machines[i].assignedJobs[j].shipper,
-                        schedule.machines[i].assignedJobs[j].priority,
-                        schedule.machines[i].assignedJobs[j].readyTime,
-                        schedule.machines[i].assignedJobs[j].startTime,
-                        schedule.machines[i].assignedJobs[j].completeTime);
+                    if (schedule.machines[i].scheduledEvents[k].type == "DownTime")
+                    {
+                        Console.WriteLine(
+                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10}",
+                        schedule.machines[i].scheduledEvents[k].index,
+                        schedule.machines[i].scheduledEvents[k].type,
+                        " ",
+                        schedule.machines[i].scheduledEvents[k].startTime,
+                        schedule.machines[i].scheduledEvents[k].endTime,
+                        " ",
+                        " ",
+                        " ",
+                        " ",
+                        " "
+                        );
+                    }
+                    else
+                    {
+                        Console.WriteLine(
+                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10}",
+                        schedule.machines[i].scheduledEvents[k].index,
+                        schedule.machines[i].scheduledEvents[k].type,
+                        schedule.machines[i].scheduledEvents[k].job.readyTime,
+                        schedule.machines[i].scheduledEvents[k].startTime,
+                        schedule.machines[i].scheduledEvents[k].endTime,
+                        schedule.machines[i].scheduledEvents[k].job.index,
+                        schedule.machines[i].scheduledEvents[k].job.priority,
+                        schedule.machines[i].scheduledEvents[k].job.isGeared,
+                        schedule.machines[i].scheduledEvents[k].job.isDedicated,
+                        schedule.machines[i].scheduledEvents[k].job.shipper
+                        );
+                    }
+                    
                 }
                 Console.WriteLine(" ");
             }
