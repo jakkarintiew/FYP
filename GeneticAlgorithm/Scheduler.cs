@@ -29,6 +29,7 @@ namespace GeneticAlgorithm
         {
             job.assignedMachine = machine;
             machine.assignedJobs.Add(job);
+            AssignSchedule(machine, job);
         }
 
         public void AssignSchedule(Machine machine, Job job)
@@ -70,7 +71,6 @@ namespace GeneticAlgorithm
             for (int j = 0; j < jobs.Count; j++)
             {
                 Assign(machines[assignment[j]], jobs[j]);
-                AssignSchedule(machines[assignment[j]], jobs[j]);
                 cost += Data.cost_mat[assignment[j], j];
             }
 

@@ -60,13 +60,6 @@ namespace GeneticAlgorithm
             {
                 CalculateAllFitness();
                 Population.Sort(CompareFitness);
-                //Console.WriteLine("Best: " + Population[0].Fitness);
-                //Console.WriteLine("Worst: " + Population[Population.Count - 1].Fitness);
-                //for (int i = 0; i < Population.Count; i++)
-                //{
-                //    Console.WriteLine("Fitness = " + Population[i].Fitness);
-                //}
-
             }
 
             // Deleted memory for eliminated individuals with poor fitness
@@ -99,7 +92,6 @@ namespace GeneticAlgorithm
             List<Chromosome> tmpList = Population;
             Population = newPopulation;
             newPopulation = tmpList;
-
             Generation++;
         }
 
@@ -120,7 +112,12 @@ namespace GeneticAlgorithm
                 if (randDouble < cumulative)
                 {
                     int selectedElement = dict.Keys.ElementAt(i);
+
+                    //Console.WriteLine("target_column: [{0}]", string.Join(",", target_column));
+                    //Console.WriteLine("prob_vector: [{0}]", string.Join(",", prob_vector));
                     //Console.WriteLine("randDouble: {0}", randDouble);
+                    //Console.WriteLine("selectedElement: {0}\n", selectedElement);
+
                     return selectedElement;
                 }
             }
@@ -149,45 +146,32 @@ namespace GeneticAlgorithm
                         target_column = Data.cost_mat.Column(j);
                         break;
                     case Data.objetiveFunction.Makespan:
-                        target_column = Vector<double>.Abs(Vector<double>.Build.Dense(Data.machines.Select(x => x.readyTime).ToArray()) - Data.jobs[j].readyTime);
+                        //Console.WriteLine("machines.latestReadyTime: [{0}]", string.Join(",", Vector<double>.Build.Dense(schedule.machines.Select(x => x.latestReadyTime).ToArray())));
+                        //Console.WriteLine("jobs[j].readyTime: [{0}]\n", schedule.jobs[j].readyTime);
+
+                        target_column = Vector<double>.Abs(Vector<double>.Build.Dense(schedule.machines.Select(x => x.latestReadyTime).ToArray()) - schedule.jobs[j].readyTime);
                         break;
                 }
 
                 bool isFeasible = false;
+                int counter = 0;
                 while (!isFeasible)
                 {
                     int indexSelectedMachine = ProbabilityMachineSelection(target_column);
 
                     if (schedule.IsFeasible(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
                     {
-
+                        assignment.Add(indexSelectedMachine);
+                        schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                        isFeasible = true;
                     }
-
-                    if (schedule.IsGearFeasible(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                    else
                     {
-                        switch (dedicationType)
-                        {
-                            case Data.dedicationType.Felxible:
-                                if (schedule.IsFlexDedicationFeasible(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
-                                {
-                                    assignment.Add(indexSelectedMachine);
-                                    isFeasible = true;
-                                }
-                                break;
-                            case Data.dedicationType.Strict:
-                                if (schedule.IsStrictDedicationFeasible(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
-                                {
-                                    assignment.Add(indexSelectedMachine);
-                                    isFeasible = true;
-                                }
-                                break;
-                        }
-
+                        counter += 1;
                     }
                 }
             }
 
-            schedule.assignment = assignment;
             schedule.GetSchedule(assignment);
             return assignment;
         }
