@@ -20,8 +20,8 @@ namespace GeneticAlgorithm
             //Console.WriteLine("Costs matrix: ");
             //Print2DArray(Data.cost_data);
             //Console.WriteLine("\n");
-            Console.WriteLine("Number of workers: {0}", Data.num_machines);
-            Console.WriteLine("Number of jobs: {0}", Data.num_jobs);
+            Console.WriteLine("Number of workers: {0}", Data.numMachines);
+            Console.WriteLine("Number of jobs: {0}", Data.numJobs);
             Console.WriteLine("==============================================================================");
         }
 
@@ -29,20 +29,22 @@ namespace GeneticAlgorithm
         {
             // Prevent cursor flickering
             Console.CursorVisible = false;
-            Scheduler bestSchedule = new Scheduler();
-            bestSchedule.GetSchedule(ga.BestGenes);
+            Scheduler bestSchedule = ga.BestChromosome.schedule;
 
             // Print current best genes
             sb = new StringBuilder();
             sb.AppendLine("------------------------------------------------------------------------");
             sb.AppendFormat("Current Generation:        {0}     \n", ga.Generation);
-            sb.AppendFormat("Current Assignment:        [ {0} ] \n", string.Join(", ", ga.BestGenes));
+            //sb.AppendFormat("Current Assignment:        [ {0} ] \n", string.Join(",", ga.BestGenes.Select(x => x <= 100)));
             sb.AppendFormat("Fitness Fucntion:          {0}     \n", Enum.GetName(typeof(Data.objetiveFunction), Data.objectiveCase));
             sb.AppendFormat("Crossover Fucntion:        {0}     \n", Enum.GetName(typeof(Data.crossoverFunction), Data.crossoverMethod));
-            sb.AppendFormat("Current Best Fitness:      {0}     \n", ga.BestFitness);
-            sb.AppendFormat("Current Best Cost:         {0}     \n", bestSchedule.cost);
-            sb.AppendFormat("Current Best Makespan:     {0}     \n", bestSchedule.makespan);
-            //sb.AppendFormat("Current Best Feasibility:  {0}     \n", bestSchedule.isFeasible);
+            sb.AppendFormat("Current Best Fitness:      {0:0.00}\n", ga.BestFitness);
+            sb.AppendFormat("Current Best Total Cost:   {0:0.00}\n", bestSchedule.totalCost);
+            sb.AppendFormat("Travelling Cost:           {0:0.00}\n", bestSchedule.travelCost);
+            sb.AppendFormat("Handling Cost:             {0:0.00}\n", bestSchedule.handlingCost);
+            sb.AppendFormat("D&D Cost:                  {0:0.00}\n", bestSchedule.dndCost);
+            sb.AppendFormat("Current Best SumLateStart: {0:0.00}\n", bestSchedule.sumLateStart);
+            sb.AppendFormat("Current Best Makespan:     {0:0.00}\n", bestSchedule.makespan);
             sb.AppendFormat("Population Size:           {0}     \n", ga.Population.Count);
             sb.AppendFormat("Mutation Rate:             {0}     \n", Data.mutationRate);
             sb.AppendLine("------------------------------------------------------------------------");
@@ -52,20 +54,22 @@ namespace GeneticAlgorithm
             
         public void PrintResult(GA ga, string elapsedTime)
         {
-            Scheduler bestSchedule = new Scheduler();
-            bestSchedule.GetSchedule(ga.BestGenes);
+            Scheduler bestSchedule = ga.BestChromosome.schedule;
 
             // Print solution and run time
             Console.SetCursorPosition(0, Console.CursorTop + sb.ToString().Count(c => c == '\n') + 2);
             Console.WriteLine("=================================== Result ===================================");
-            Console.WriteLine("Generation:          {0}",   ga.Generation);
-            Console.WriteLine("Assignment:          [ {0} ]", String.Join(", ", ga.BestGenes));
-            Console.WriteLine("Best Fitness:        {0}",   ga.BestFitness);
-            Console.WriteLine("Cost:                {0}",   bestSchedule.cost);
-            Console.WriteLine("Makespan:            {0}",   bestSchedule.makespan);
-            //Console.WriteLine("Feasibility:         {0}",   bestSchedule.isFeasible);
-            Console.WriteLine("Population Size:     {0}",   ga.Population.Count);
-            Console.WriteLine("RunTime:             {0}",   elapsedTime);
+            Console.WriteLine("Generation:          {0}",       ga.Generation);
+            Console.WriteLine("Assignment:          [ {0} ]",   String.Join(", ", ga.BestGenes));
+            Console.WriteLine("Best Fitness:        {0:0.00}",  ga.BestFitness);
+            Console.WriteLine("Total Cost:          {0:0.00}",  bestSchedule.totalCost);
+            Console.WriteLine("Travelling Cost:     {0:0.00}", bestSchedule.travelCost);
+            Console.WriteLine("Handling Cost:       {0:0.00}", bestSchedule.handlingCost);
+            Console.WriteLine("D&D Cost:            {0:0.00}",  bestSchedule.dndCost);
+            Console.WriteLine("SumLateStart:        {0:0.00}",  bestSchedule.sumLateStart);
+            Console.WriteLine("Makespan:            {0:0.00}",  bestSchedule.makespan);
+            Console.WriteLine("Population Size:     {0}",       ga.Population.Count);
+            Console.WriteLine("RunTime:             {0}",       elapsedTime);
             PrintSchedule(bestSchedule);
             Console.WriteLine("==============================================================================\n");
         }
@@ -78,42 +82,13 @@ namespace GeneticAlgorithm
                 StringBuilder sb = new StringBuilder();
                 sb.AppendFormat("Machine {0}", schedule.machines[i].index);
                 PrintColourMessage(ConsoleColor.Cyan, sb.ToString());
-
-
-                //Console.WriteLine("Down times:"); Print2DArray( schedule.machines[i].downTimes, "  ->  ");
                 Console.WriteLine("Accepting geared job: {0}",  schedule.machines[i].isGearAccepting);
                 Console.WriteLine("Dedicated shipper: {0}",     schedule.machines[i].dedicatedCustomer);
 
                 //Console.WriteLine("Job list: [ {0} ]", string.Join(",", schedule.machines[i].assignedJobs.Select(x => x.index)));
 
-                //Console.WriteLine("{0, -10} {1, -10} {2, -10} {3, -10} {4, -10} {5, -15} {6, -15} {7, -15}",
-                //    "Index",
-                //    "Geared",
-                //    "Dedicated",
-                //    "Shipper",
-                //    "Priority",
-                //    "Ready Time",
-                //    "Start Time",
-                //    "Complete Time");
-
-                //for (int j = 0; j < schedule.machines[i].assignedJobs.Count; j++)
-                //{
-                //    Console.WriteLine(
-                //        "{0, -10} {1, -10} {2, -10} {3, -10} {4, -10} {5, -15} {6, -15} {7, -15}",
-                //        schedule.machines[i].assignedJobs[j].index,
-                //        schedule.machines[i].assignedJobs[j].isGeared,
-                //        schedule.machines[i].assignedJobs[j].isDedicated,
-                //        schedule.machines[i].assignedJobs[j].shipper,
-                //        schedule.machines[i].assignedJobs[j].priority,
-                //        schedule.machines[i].assignedJobs[j].readyTime,
-                //        schedule.machines[i].assignedJobs[j].startTime,
-                //        schedule.machines[i].assignedJobs[j].completeTime
-                //        );
-                //}
-                //Console.WriteLine(" ");
-
                 Console.WriteLine(
-                    "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10}",
+                    "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10} {12, -10} {13, -10}",
                     "Index",
                     "Type",
                     "Job Ready Time",
@@ -123,20 +98,28 @@ namespace GeneticAlgorithm
                     "Priority",
                     "Geared",
                     "Dedicated",
-                    "Shipper"
+                    "Shipper",
+                    "Unload",
+                    "Target",
+                    "Barge",
+                    "Target"
                     );
 
                 for (int k = 0; k < schedule.machines[i].scheduledEvents.Count; k++)
                 {
-                    if (schedule.machines[i].scheduledEvents[k].type == "DownTime")
+                    if (schedule.machines[i].scheduledEvents[k].type == "Stoppage")
                     {
                         Console.WriteLine(
-                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10}",
+                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10} {12, -10} {13, -10}",
                         schedule.machines[i].scheduledEvents[k].index,
                         schedule.machines[i].scheduledEvents[k].type,
                         " ",
                         schedule.machines[i].scheduledEvents[k].startTime,
                         schedule.machines[i].scheduledEvents[k].endTime,
+                        " ",
+                        " ",
+                        " ",
+                        " ",
                         " ",
                         " ",
                         " ",
@@ -147,7 +130,7 @@ namespace GeneticAlgorithm
                     else
                     {
                         Console.WriteLine(
-                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10}",
+                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10} {12, -10} {13, -10}",
                         schedule.machines[i].scheduledEvents[k].index,
                         schedule.machines[i].scheduledEvents[k].type,
                         schedule.machines[i].scheduledEvents[k].job.readyTime,
@@ -157,12 +140,16 @@ namespace GeneticAlgorithm
                         schedule.machines[i].scheduledEvents[k].job.priority,
                         schedule.machines[i].scheduledEvents[k].job.isGeared,
                         schedule.machines[i].scheduledEvents[k].job.isDedicated,
-                        schedule.machines[i].scheduledEvents[k].job.shipper
+                        schedule.machines[i].scheduledEvents[k].job.shipper,
+                        schedule.machines[i].scheduledEvents[k].job.isUnloading,
+                        schedule.machines[i].scheduledEvents[k].job.machineIdUnload,
+                        schedule.machines[i].scheduledEvents[k].job.isBarge,
+                        schedule.machines[i].scheduledEvents[k].job.machineIdBarge
                         );
                     }
                     
                 }
-                Console.WriteLine(" ");
+                Console.WriteLine("\n");
             }
 
             Console.WriteLine("------------------------------------------------------------------------");

@@ -22,3 +22,29 @@ C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.pdb
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\MathNet.Numerics.dll
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\MathNet.Numerics.xml
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.CopyComplete
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\ExcelMapper.dll
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\NPOI.dll
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\NPOI.OOXML.dll
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\NPOI.OpenXml4Net.dll
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\NPOI.OpenXmlFormats.dll
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\ExcelMapper.xml
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\ICSharpCode.SharpZipLib.xml
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\GeneticAlgorithm.exe.config
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\GeneticAlgorithm.exe
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\GeneticAlgorithm.pdb
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\ExcelMapper.dll
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\MathNet.Numerics.dll
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\NPOI.dll
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\NPOI.OOXML.dll
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\NPOI.OpenXml4Net.dll
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\NPOI.OpenXmlFormats.dll
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\ExcelMapper.xml
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\ICSharpCode.SharpZipLib.xml
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\bin\Debug\MathNet.Numerics.xml
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csprojAssemblyReference.cache
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.CoreCompileInputs.cache
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.CopyComplete
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.exe
+C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.pdb

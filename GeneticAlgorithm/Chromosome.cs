@@ -10,46 +10,103 @@ namespace GeneticAlgorithm
     public class Chromosome
     {
         // Gene is type int List
-        public List<int> Genes { get; set; }
+        public List<int> genes { get; set; }
         public Scheduler schedule { get; set; }
-
-        // Fitness of each individual
-        public double Fitness { get; private set; }
-
-        private Mcg59 random;
+        public double fitness { get; set; }
         private Func<List<int>> getRandomGenes;
-        private Func<int, double> fitnessFunction;
 
         // Construtor
         public Chromosome(
             int size,
-            Mcg59 random,
             Func<List<int>> getRandomGenes,
-            Func<int, double> fitnessFunction,
             bool shouldInitGenes = true)
         {
-            // Create the Gene array with size
-            Genes = new List<int>(new int[size]);
 
-            this.random = random;
+
+            // Create the Gene array with size
+            genes = new List<int>(Enumerable.Repeat(-1, size));
+
+            schedule = new Scheduler();
             this.getRandomGenes = getRandomGenes;
-            this.fitnessFunction = fitnessFunction;
 
             if (shouldInitGenes)
             {
-                Genes = getRandomGenes();
-                schedule = new Scheduler();
-                schedule.GetSchedule(Genes);
+                genes = getRandomGenes();
+                //Console.WriteLine("chrmsm: [ {0} ]", string.Join(",  ", genes));
+                CalculateFitness();
             }
 
+
+
         }
 
-        public double CalculateFitness(int index)
+        public void MakeProperGenes()
         {
-            Fitness = fitnessFunction(index);
-            return Fitness;
+            List<int> tmp = new List<int>();
+            int slotPosition;
+            
+            for (int i = 0; i < Data.numMachines; i++)
+            {
+                for (int j = 0; j  < Data.numJobs; j ++)
+                {
+                    slotPosition = Data.numJobs * i + j;
+                    if (genes[slotPosition] <= 100)
+                    {
+                        tmp.Add(genes[slotPosition]);
+                    }
+                }
+
+                for (int j = 0; j < Data.numJobs; j++)
+                {
+                    slotPosition = Data.numJobs * i + j;
+                    if (genes[slotPosition] > 100)
+                    {
+                        tmp.Add(genes[slotPosition]);
+                    }
+                }
+            }
+
+            genes = tmp;
         }
-     
+
+        public double CalculateFitness()
+        {
+            //Console.WriteLine("chrmsm:     [ {0} ]", string.Join(",\t", genes));
+            //Printer printer = new Printer();
+            //printer.PrintSchedule(chrmsm.schedule);
+            schedule.genes = genes;
+            schedule.genesToSchedule();
+            schedule.GetSchedule();
+
+            Data.objetiveFunction objetive = (Data.objetiveFunction)Data.objectiveCase;
+
+            switch (objetive)
+            {
+                case Data.objetiveFunction.TotalCostWithPriority:
+                    fitness = schedule.totalCost;
+                    break;
+                case Data.objetiveFunction.TotalCostNoPriority:
+                    fitness = schedule.totalCost;
+                    break;
+                case Data.objetiveFunction.DemurrageDespatchCost:
+                    fitness = schedule.dndCost;
+                    break;
+                case Data.objetiveFunction.SumLateStart:
+                    fitness = schedule.sumLateStart;
+                    break;
+                case Data.objetiveFunction.Makespan:
+                    fitness = schedule.makespan;
+                    break;
+            }
+
+            if (!schedule.IsOverallFeasible())
+            {
+                fitness = double.MaxValue;
+            }
+
+            return fitness;
+        }
+
     }
 
 }

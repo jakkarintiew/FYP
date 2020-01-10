@@ -25,6 +25,7 @@ namespace GeneticAlgorithm
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
+            Console.WriteLine("HERE");
             // Initialize ga instance
             ga = new GA();
             printer = new Printer();
@@ -41,8 +42,8 @@ namespace GeneticAlgorithm
             int repeated_generations = 0;
 
             while (
-                ga.Generation < Data.max_generations &&
-                repeated_generations < Data.max_repeated_generations &&
+                ga.Generation < Data.maxGenerations &&
+                repeated_generations < Data.maxRepeatedGenerations &&
                 ga.BestFitness > Data.solution ||
                 ga.BestFitness == 0
                 )

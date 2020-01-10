@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ganss.Excel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,51 +7,74 @@ using System.Threading.Tasks;
 
 namespace GeneticAlgorithm
 {
-    public class Machine
+    public class Machine: ICloneable
     {
-        public int index { get; private set; }
-        public double readyTime { get; private set; }
+        public int index { get; set; }
+        public double position { get; set; }
+        public double readyTime { get; set; }
+        public double procRate { get; set; }
+        public double loadingUnitCost { get; set; }
+        public bool isGearAccepting { get; set; }
+        public bool isDedicated { get; set; }
+        public string dedicatedCustomer { get; set; }
+
+        public double latestPosition { get; set; }
+        public double accumDistance { get; set; }
         public double latestReadyTime { get; set; }
-        public double procRate { get; private set; }
-        public bool isGearAccepting { get; private set; }
-        public bool isDedicated { get; private set; }
-        public string dedicatedCustomer { get; private set; }
-        public double[,] downTimes { get; set; }
         public List<Job> assignedJobs { get; set; }
+        public List<Stoppage> stoppages { get; private set; }
         public List<Event> scheduledEvents { get; set; }
 
 
         // Construtor
-        public Machine(
-            int index, 
-            double readyTime, 
-            double procRate, 
-            bool isGearAccepting, 
-            bool isDedicated, 
-            string dedicatedCustomer, 
-            double[,] downTimes)
+        public Machine()
         {
-            this.index = index;
+           
+        }
+
+        public void Init()
+        {
+            latestPosition = position;
             latestReadyTime = readyTime;
-            this.readyTime = readyTime;
-            this.procRate = procRate;
-            this.isGearAccepting = isGearAccepting;
-            this.isDedicated = isDedicated;
-            this.dedicatedCustomer = dedicatedCustomer;
-            this.downTimes = downTimes;
             assignedJobs = new List<Job>();
+            stoppages = new List<Stoppage>();
             scheduledEvents = new List<Event>();
 
-            // Downtimes consideration
-            for (int i = 0; i < downTimes.GetLength(0); i++)
+            foreach (Stoppage stoppage in Data.all_stoppages)
             {
-                scheduledEvents.Add(new Event(
-                   type: "DownTime",
-                   startTime: downTimes[i, 0],
-                   endTime: downTimes[i, 1],
-                   job: new Job(-1, -1, -1, false, false, "0", -1)
-                   ));
+                if (stoppage.index == index)
+                {
+                    //Console.WriteLine("{0}: {1} -- {2}", stoppage.index, stoppage.start, stoppage.end);
+                    stoppages.Add(stoppage);
+                    scheduledEvents.Add(new Event(
+                        type: "Stoppage",
+                        startTime: stoppage.start,
+                        endTime: stoppage.end,
+                        job: new Job()
+                        ));
+                }
             }
+        }
+
+        public object Clone()
+        {
+            return new Machine
+            {
+                index = this.index,
+                position = this.position,
+                latestPosition = this.latestPosition,
+                accumDistance = this.accumDistance,
+                readyTime = this.readyTime,
+                latestReadyTime = this.latestReadyTime,
+                procRate = this.procRate,
+                loadingUnitCost = this.loadingUnitCost,
+                isGearAccepting = this.isGearAccepting,
+                isDedicated = this.isDedicated,
+                dedicatedCustomer = this.dedicatedCustomer,
+                assignedJobs = new List<Job>(),
+                stoppages = this.stoppages,
+                scheduledEvents = new List<Event>(),
+        };
         }
     }
 }
