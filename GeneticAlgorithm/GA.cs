@@ -116,75 +116,97 @@ namespace GeneticAlgorithm
 
         private List<int> GetRandomGenes()
         {
-            //Console.WriteLine("IM HERE");
-
             Scheduler schedule = new Scheduler();
             Data.objetiveFunction objetiveFunction = (Data.objetiveFunction)Data.objectiveCase;
             Vector<double> randSelectionColumn = Vector<double>.Build.Dense(Data.numMachines);
+            bool isFeasible = false;
+            int counter = 0;
+
+            if (Data.isAllMachinesUtilized && schedule.machines.Count(mc => !mc.isThirdParty) <= schedule.jobs.Count)
+            {
+                foreach (Machine machine in schedule.machines) 
+                {
+                    if (schedule.machines.Count >= schedule.jobs.Count)
+                    {
+                        if (!machine.isThirdParty || machine.isCompulsary)
+                        {
+                            isFeasible = false;
+                            counter = 0;
+                            while (!isFeasible)
+                            {
+                                int randJobIndex = random.Next(schedule.jobs.Count);
+                                if (!schedule.IsFeasible(machine, schedule.jobs[randJobIndex]))
+                                {
+                                    counter++;
+                                }
+                                else if (schedule.jobs[randJobIndex].assignedMachine == null)
+                                {
+                                    schedule.Assign(machine, schedule.jobs[randJobIndex]);
+                                    schedule.scheduleToGenes();
+                                    isFeasible = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             for (int j = 0; j < schedule.jobs.Count; j++)
             {
-                bool isFeasible = false;
-                int counter = 0;
-
-                for (int i = 0; i < schedule.machines.Count; i++)
+                if (schedule.jobs[j].assignedMachine == null)
                 {
+                    isFeasible = false;
+                    counter = 0;
 
-                    switch (objetiveFunction)
+                    for (int i = 0; i < schedule.machines.Count; i++)
                     {
-                        case Data.objetiveFunction.TotalCostWithPriority:
-                            randSelectionColumn[i] = schedule.getCost(schedule.machines[i], schedule.jobs[j]);
-                            break;
-                        case Data.objetiveFunction.TotalCostNoPriority:
-                            randSelectionColumn[i] = schedule.getCost(schedule.machines[i], schedule.jobs[j]);
-                            break;
-                        case Data.objetiveFunction.DemurrageDespatchCost:
-                            randSelectionColumn[i] = schedule.getCost(schedule.machines[i], schedule.jobs[j]);
-                            break;
-                        case Data.objetiveFunction.SumLateStart:
-                            randSelectionColumn[i] = Math.Abs(schedule.machines[i].latestReadyTime - schedule.jobs[j].readyTime);
-                            break;
-                        case Data.objetiveFunction.Makespan:
-                            randSelectionColumn[i] = Math.Abs(schedule.machines[i].latestReadyTime - schedule.jobs[j].readyTime);
-                            break;
+
+                        switch (objetiveFunction)
+                        {
+                            case Data.objetiveFunction.TotalCostWithPriority:
+                                randSelectionColumn[i] = schedule.getCost(schedule.machines[i], schedule.jobs[j]);
+                                break;
+                            case Data.objetiveFunction.TotalCostNoPriority:
+                                randSelectionColumn[i] = schedule.getCost(schedule.machines[i], schedule.jobs[j]);
+                                break;
+                            case Data.objetiveFunction.DemurrageDespatchCost:
+                                randSelectionColumn[i] = schedule.getCost(schedule.machines[i], schedule.jobs[j]);
+                                break;
+                            case Data.objetiveFunction.SumLateStart:
+                                randSelectionColumn[i] = Math.Abs(schedule.machines[i].latestReadyTime - schedule.jobs[j].readyTime);
+                                break;
+                            case Data.objetiveFunction.Makespan:
+                                randSelectionColumn[i] = Math.Abs(schedule.machines[i].latestReadyTime - schedule.jobs[j].readyTime);
+                                break;
+                        }
                     }
+
+                    while (!isFeasible)
+                    {
+
+                        int indexSelectedMachine = ProbabilityMachineSelection(randSelectionColumn);
+
+                        if (!schedule.IsFeasible(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
+                        {
+                            counter++;
+                            randSelectionColumn[indexSelectedMachine] = int.MaxValue;
+                        }
+                        else
+                        {
+                            schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
+                            isFeasible = true;
+                        }
+                    }
+
+                    //Console.WriteLine(counter);
+                    //Console.WriteLine(isFeasible);
                 }
-
-
-
-                while (!isFeasible)
-                {
-
-                    int indexSelectedMachine = ProbabilityMachineSelection(randSelectionColumn);
-
-                    if (!schedule.IsFeasible(schedule.machines[indexSelectedMachine], schedule.jobs[j]))
-                    {
-                        counter++;
-                        randSelectionColumn[indexSelectedMachine] = int.MaxValue;
-                    }
-                    else
-                    {
-                        schedule.Assign(schedule.machines[indexSelectedMachine], schedule.jobs[j]);
-                        isFeasible = true;
-                    }
-                }
-
-                //Console.WriteLine(counter);
-                //Console.WriteLine(isFeasible);
-
             }
 
 
             schedule.scheduleToGenes();
-
             //Console.WriteLine(schedule.IsOverallFeasible());
             //Console.WriteLine("scheduleToGenes: [ {0} ]", string.Join(",", schedule.genes));
-            //schedule.genesToSchedule();
-            //schedule.scheduleToGenes();
-            //Console.WriteLine("genesToSchedule: [ {0} ]", string.Join(",", schedule.genes));
-            //Console.WriteLine("\n");
-
-
 
             return schedule.genes;
         }
@@ -318,13 +340,6 @@ namespace GeneticAlgorithm
                         }
                     }
 
-                    //Console.WriteLine("positionProfile: [ {0} ]", string.Join(",\t", positionProfile));
-                    //Console.WriteLine("firstParent:     [ {0} ]", string.Join(",\t", firstParent.genes));
-                    //Console.WriteLine("secondParent:    [ {0} ]", string.Join(",\t", secondParent.genes));
-                    //Console.WriteLine("firstChild:      [ {0} ]", string.Join(",\t", firstChild.genes));
-                    //Console.WriteLine("secondChild:     [ {0} ]", string.Join(",\t", secondChild.genes));
-                    //Console.WriteLine("\n");
-
                     for (int i = 0; i < positionProfile.Count; i++)
                     {
                         if (positionProfile[i] == 1)
@@ -339,21 +354,8 @@ namespace GeneticAlgorithm
 
                     firstChild.MakeProperGenes();
                     secondChild.MakeProperGenes();
-
                     firstChild.CalculateFitness();
                     secondChild.CalculateFitness();
-
-                    //Console.WriteLine("positionProfile: [ {0} ]", string.Join(",\t", positionProfile));
-                    //Console.WriteLine("firstParent:     [ {0} ]", string.Join(",\t", firstParent.genes));
-                    //Console.WriteLine("secondParent:    [ {0} ]", string.Join(",\t", secondParent.genes));
-                    //Console.WriteLine("firstChild:      [ {0} ]", string.Join(",\t", firstChild.genes));
-                    //Console.WriteLine("secondChild:     [ {0} ]", string.Join(",\t", secondChild.genes));
-
-                    //Console.WriteLine("firstParent fitness:     {0}", firstParent.fitness);
-                    //Console.WriteLine("secondParent fitness:    {0}", secondParent.fitness);
-                    //Console.WriteLine("firstChild fitness:      {0}", firstChild.fitness);
-                    //Console.WriteLine("secondChild fitness:     {0}\n", secondChild.fitness);
-
 
                     if (CompareFitness(firstChild, secondChild) == 1)
                     {
@@ -365,24 +367,6 @@ namespace GeneticAlgorithm
                     }
 
                     isFeasible = child.schedule.IsOverallFeasible();
-
-                    //if (child.schedule.IsOverallFeasible())
-                    //{
-
-                    //    Console.WriteLine("Profile:       [ {0} ]", string.Join(",  ", positionProfile));
-                    //    Console.WriteLine("firstParent:   [ {0} ]", string.Join(", ", firstParent.genes));
-                    //    Console.WriteLine("secondParent:  [ {0} ]", string.Join(", ", secondParent.genes));
-                    //    Console.WriteLine("firstChild:    [ {0} ]", string.Join(", ", firstChild.genes));
-                    //    Console.WriteLine("secondChild:   [ {0} ]", string.Join(", ", secondChild.genes));
-                    //    Console.WriteLine("child:         [ {0} ]\n", string.Join(", ", child.genes));
-                    //    Console.WriteLine("firstParent fitness:     {0}", firstParent.fitness);
-                    //    Console.WriteLine("secondParent fitness:    {0}", secondParent.fitness);
-                    //    Console.WriteLine("firstChild fitness:      {0}", firstChild.fitness);
-                    //    Console.WriteLine("secondChild fitness:     {0}", secondChild.fitness);
-                    //    Console.WriteLine("child fitness:           {0}\n", child.fitness);
-                    //    Printer printer = new Printer();
-                    //    printer.PrintSchedule(child.schedule);
-                    //}
 
                 }
 

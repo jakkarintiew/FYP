@@ -71,7 +71,7 @@ namespace GeneticAlgorithm
 
         public double CalculateFitness()
         {
-            //Console.WriteLine("chrmsm:     [ {0} ]", string.Join(",\t", genes));
+            //Console.WriteLine("chrmsm:     [ {0} ]", string.Join(",", genes));
             //Printer printer = new Printer();
             //printer.PrintSchedule(chrmsm.schedule);
             schedule.genes = genes;

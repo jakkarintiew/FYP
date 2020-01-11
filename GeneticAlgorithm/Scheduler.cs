@@ -28,8 +28,8 @@ namespace GeneticAlgorithm
             machines = Data.machines.Select(x => (Machine)x.Clone()).ToList();
             foreach (Machine machine in machines) { machine.Init(); }
             jobs = Data.jobs.Select(x => (Job)x.Clone()).ToList();
-
             genes = new List<int>(new int[machines.Count * jobs.Count]);
+            genes = genes.Select(x => -1).ToList();
         }
 
         public void Assign(Machine machine, Job job)
@@ -45,9 +45,9 @@ namespace GeneticAlgorithm
             job.startTime = Math.Max(machine.latestReadyTime, job.readyTime);
 
             // Calculate time needed to process Job (quantity * time needed per unit quanitit)
-            double processingTime = job.quantity * machine.procRate;
+            job.procTime = job.quantity * machine.procRate;
 
-            job.completeTime = job.startTime + processingTime;
+            job.completeTime = job.startTime + job.procTime;
 
             if (job.demurrage > 0 && job.isOutOfLaycan == false)
             {
@@ -55,7 +55,7 @@ namespace GeneticAlgorithm
             }
             else
             {
-                job.dndTime = processingTime - (job.requestedProcRate * job.quantity);
+                job.dndTime = job.procTime - (job.requestedProcRate * job.quantity);
             }
 
             // Downtimes consideration
@@ -66,7 +66,7 @@ namespace GeneticAlgorithm
                 {
                     if (job.completeTime >= stoppage.start)
                     {
-                        processingTime = processingTime + stoppage.end - stoppage.start;
+                        job.procTime = job.procTime + stoppage.end - stoppage.start;
                     }
                 }
                 else if (job.startTime >= stoppage.start && job.startTime <= stoppage.end)
@@ -76,9 +76,9 @@ namespace GeneticAlgorithm
             }
 
 
-            job.completeTime = job.startTime + processingTime;
+            job.completeTime = job.startTime + job.procTime;
 
-            job.travelingCost = Math.Abs(machine.latestPosition - job.position);
+            job.travelCost = Math.Abs(machine.latestPosition - job.position);
             //machine.accumDistance += Math.Abs(machine.latestPosition - job.position);
             // Update machine
             machine.latestReadyTime = job.completeTime;
@@ -87,20 +87,21 @@ namespace GeneticAlgorithm
 
         public double getCost(Machine machine, Job job)
         {
-            double travelCost = Math.Abs(machine.latestPosition - job.position);
-            double handlingCost = machine.loadingUnitCost * job.quantity;
-            double dndCost = 0.00;
+            job.travelCost = Math.Abs(machine.latestPosition - job.position);
+            job.handlingCost = machine.loadingUnitCost * job.quantity;
+            job.dndCost = 0.00;
 
             if (job.isLateComplete())
             {
-                dndCost = job.demurrage;
+                job.dndCost = job.demurrage * job.dndTime; 
             }
             else
             {
-                dndCost = job.despatch;
+                job.dndCost = job.despatch * job.dndTime;
             }
 
-            return travelCost + handlingCost + dndCost;
+            job.totalCost = job.travelCost + job.handlingCost + job.dndCost;
+            return job.totalCost;
         }
 
         public void genesToSchedule()
@@ -127,7 +128,6 @@ namespace GeneticAlgorithm
             }
 
         }
-
 
         public void scheduleToGenes()
         {
@@ -250,7 +250,8 @@ namespace GeneticAlgorithm
                     sumLateStart += machines[i].assignedJobs[j].lateStartTime;
 
                     //Cost calculation
-                    travelCost += machines[i].assignedJobs[j].travelingCost;
+
+                    travelCost += machines[i].assignedJobs[j].travelCost;
                     handlingCost += machines[i].loadingUnitCost * machines[i].assignedJobs[j].quantity;
 
                     if (machines[i].assignedJobs[j].isLateComplete())
@@ -272,8 +273,19 @@ namespace GeneticAlgorithm
         public bool IsOverallFeasible()
         {
             bool isFeasible = false;
+
             for (int i = 0; i < machines.Count; i++)
             {
+                if (Data.isAllMachinesUtilized && machines.Count(mc => !mc.isThirdParty) <= jobs.Count && !machines[i].isThirdParty && machines[i].assignedJobs.Count == 0)
+                {
+                    return false;
+                }
+
+                if (machines.Count >= jobs.Count && machines[i].isCompulsary && machines[i].assignedJobs.Count == 0)
+                {
+                    return false;
+                }
+
                 for (int j = 0; j < machines[i].assignedJobs.Count; j++)
                 {
                     if (IsFeasible(machines[i], machines[i].assignedJobs[j]))

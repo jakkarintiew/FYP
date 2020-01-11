@@ -11,20 +11,18 @@ namespace GeneticAlgorithm
     {
         private string filePath { get;  set; }
         private StringBuilder csv { get; set; }
-        public Writer(string filePath)
+        public Writer(string filePath, string header)
         {
             // Initialize csv writer
             this.filePath = filePath;
             File.Delete(filePath);
             csv = new StringBuilder();
-            var newLine = string.Format("Generation,Fitness");
-            csv.AppendLine(newLine);
+            csv.AppendLine(header);
         }
 
-        public void WriteLine(GA ga)
+        public void WriteLine(string newLine)
         {
             // Append to csv
-            string newLine = string.Format("{0}, {1}", ga.Generation, ga.BestFitness);
             csv.AppendLine(newLine);
         }
 

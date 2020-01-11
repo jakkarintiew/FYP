@@ -18,6 +18,11 @@ namespace GeneticAlgorithm
         public bool isDedicated { get; set; }
         public string dedicatedCustomer { get; set; }
 
+        // third-party prop
+        public bool isThirdParty { get; set; }
+        public bool isCompulsary { get; set; }
+         
+
         public double latestPosition { get; set; }
         public double accumDistance { get; set; }
         public double latestReadyTime { get; set; }
@@ -31,7 +36,6 @@ namespace GeneticAlgorithm
         {
            
         }
-
         public void Init()
         {
             latestPosition = position;
@@ -71,6 +75,8 @@ namespace GeneticAlgorithm
                 isGearAccepting = this.isGearAccepting,
                 isDedicated = this.isDedicated,
                 dedicatedCustomer = this.dedicatedCustomer,
+                isThirdParty = this.isThirdParty,
+                isCompulsary = this.isCompulsary,
                 assignedJobs = new List<Job>(),
                 stoppages = this.stoppages,
                 scheduledEvents = new List<Event>(),

@@ -34,6 +34,11 @@ namespace GeneticAlgorithm
         public int priority { get; set; }
         public double dndTime { get; set; }
 
+        public double procTime { get; set; }
+        public double travelCost { get; set; }
+        public double handlingCost { get; set; }
+        public double dndCost { get; set; }
+
 
         // Construtor
         public Job()
@@ -81,7 +86,6 @@ namespace GeneticAlgorithm
                 shipper = this.shipper,
                 demurrage = this.demurrage,
                 despatch = this.despatch,
-                travelingCost = this.travelingCost,
                 totalCost = this.totalCost,
                 assignedMachine = this.assignedMachine,
                 startTime = this.startTime,
