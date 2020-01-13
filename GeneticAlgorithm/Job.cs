@@ -23,6 +23,8 @@ namespace GeneticAlgorithm
         public bool isBarge { get; set; }
         public int machineIdBarge { get; set; }
         public string shipper { get; set; }
+        public int ogvId { get; set; }
+        public OGV ogv { get; set; }
         public double demurrage { get; set; }
         public double despatch { get; set; }
         public double travelingCost { get; set; }
@@ -33,7 +35,6 @@ namespace GeneticAlgorithm
         public double completeTime { get; set; }
         public int priority { get; set; }
         public double dndTime { get; set; }
-
         public double procTime { get; set; }
         public double travelCost { get; set; }
         public double handlingCost { get; set; }
@@ -60,6 +61,17 @@ namespace GeneticAlgorithm
             this.despatch = -1;
             this.priority = -1;
         }
+        public void Init(List<OGV> ogvs)
+        {
+            requestedProcTime = requestedProcRate * quantity;
+            foreach (OGV _ogv in ogvs)
+            {
+                if (_ogv.index == ogvId)
+                {
+                    ogv = _ogv; 
+                }
+            }
+        }
 
         public bool isLateComplete()
         {
@@ -84,6 +96,8 @@ namespace GeneticAlgorithm
                 isBarge = this.isBarge,
                 machineIdBarge = this.machineIdBarge,
                 shipper = this.shipper,
+                ogvId = this.ogvId,
+                ogv = this.ogv,
                 demurrage = this.demurrage,
                 despatch = this.despatch,
                 totalCost = this.totalCost,

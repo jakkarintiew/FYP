@@ -17,8 +17,8 @@ namespace GeneticAlgorithm
         {
             // Print problem description
             Console.WriteLine("======================= Assignment Problem Description =======================");
-            Console.WriteLine("Number of workers: {0}", Data.numMachines);
-            Console.WriteLine("Number of jobs: {0}", Data.numJobs);
+            Console.WriteLine("Number of workers: {0}", Data.NumMachines);
+            Console.WriteLine("Number of jobs: {0}", Data.NumJobs);
             Console.WriteLine("==============================================================================");
         }
 
@@ -33,10 +33,10 @@ namespace GeneticAlgorithm
             sb.AppendLine("------------------------------------------------------------------------");
             sb.AppendFormat("Current Generation:        {0}     \n", ga.Generation);
             //sb.AppendFormat("Current Assignment:        [ {0} ] \n", string.Join(",", ga.BestGenes.Select(x => x <= 100)));
-            sb.AppendFormat("Fitness Fucntion:          {0}     \n", Enum.GetName(typeof(Data.objetiveFunction), Data.objectiveCase));
-            sb.AppendFormat("Crossover Fucntion:        {0}     \n", Enum.GetName(typeof(Data.crossoverFunction), Data.crossoverMethod));
-            sb.AppendFormat("Dedication Rule:           {0}     \n", Enum.GetName(typeof(Data.dedicationType), Data.dedicationCase));
-            sb.AppendFormat("All Utilized:              {0}     \n", Data.isAllMachinesUtilized);
+            sb.AppendFormat("Fitness Fucntion:          {0}     \n", Enum.GetName(typeof(Data.ObjetiveFunction), Data.objectiveCase));
+            sb.AppendFormat("Crossover Fucntion:        {0}     \n", Enum.GetName(typeof(Data.CrossoverFunction), Data.CrossoverMethod));
+            sb.AppendFormat("Dedication Rule:           {0}     \n", Enum.GetName(typeof(Data.DedicationType), Data.DedicationCase));
+            sb.AppendFormat("All Utilized:              {0}     \n", Data.IsAllMachinesUtilized);
             sb.AppendFormat("Current Best Fitness:      {0:0.00}\n", ga.BestFitness);
             sb.AppendFormat("Current Best Total Cost:   {0:0.00}\n", bestSchedule.totalCost);
             sb.AppendFormat("Travelling Cost:           {0:0.00}\n", bestSchedule.travelCost);
@@ -45,7 +45,7 @@ namespace GeneticAlgorithm
             sb.AppendFormat("Current Best SumLateStart: {0:0.00}\n", bestSchedule.sumLateStart);
             sb.AppendFormat("Current Best Makespan:     {0:0.00}\n", bestSchedule.makespan);
             sb.AppendFormat("Population Size:           {0}     \n", ga.Population.Count);
-            sb.AppendFormat("Mutation Rate:             {0}     \n", Data.mutationRate);
+            sb.AppendFormat("Mutation Rate:             {0}     \n", Data.MutationRate);
             sb.AppendLine("------------------------------------------------------------------------");
             Console.Write(sb);
             Console.SetCursorPosition(0, Console.CursorTop - sb.ToString().Count(c => c == '\n'));
@@ -60,10 +60,10 @@ namespace GeneticAlgorithm
             Console.WriteLine("=================================== Result ===================================");
             Console.WriteLine("Generation:          {0}",       ga.Generation);
             Console.WriteLine("Genes:               [ {0} ]",   String.Join(", ", ga.BestGenes));
-            Console.WriteLine("Fitness Fucntion:    {0}",       Enum.GetName(typeof(Data.objetiveFunction), Data.objectiveCase));
-            Console.WriteLine("Crossover Fucntion:  {0}",       Enum.GetName(typeof(Data.crossoverFunction), Data.crossoverMethod));
-            Console.WriteLine("Dedication Rule:     {0}",       Enum.GetName(typeof(Data.dedicationType), Data.dedicationCase));
-            Console.WriteLine("All Utilized:        {0}",       Data.isAllMachinesUtilized);
+            Console.WriteLine("Fitness Fucntion:    {0}",       Enum.GetName(typeof(Data.ObjetiveFunction), Data.objectiveCase));
+            Console.WriteLine("Crossover Fucntion:  {0}",       Enum.GetName(typeof(Data.CrossoverFunction), Data.CrossoverMethod));
+            Console.WriteLine("Dedication Rule:     {0}",       Enum.GetName(typeof(Data.DedicationType), Data.DedicationCase));
+            Console.WriteLine("All Utilized:        {0}",       Data.IsAllMachinesUtilized);
             Console.WriteLine("Best Fitness:        {0:0.00}",  ga.BestFitness);
             Console.WriteLine("Total Cost:          {0:0.00}",  bestSchedule.totalCost);
             Console.WriteLine("Travelling Cost:     {0:0.00}",  bestSchedule.travelCost);
@@ -92,7 +92,7 @@ namespace GeneticAlgorithm
                 //Console.WriteLine("Job list: [ {0} ]", string.Join(",", schedule.machines[i].assignedJobs.Select(x => x.index)));
 
                 Console.WriteLine(
-                    "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10}",
+                    "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10} {12, -10}",
                     "id",
                     "type",
                     "jobReadyTime",
@@ -103,6 +103,7 @@ namespace GeneticAlgorithm
                     "geared",
                     "dedicated",
                     "shipper",
+                    "ogv",
                     "idUnload",
                     "idBarge"
                     );
@@ -112,12 +113,13 @@ namespace GeneticAlgorithm
                     if (schedule.machines[i].scheduledEvents[k].type == "Stoppage")
                     {
                         Console.WriteLine(
-                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10}",
+                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10} {12, -10}",
                         schedule.machines[i].scheduledEvents[k].index,
                         schedule.machines[i].scheduledEvents[k].type,
                         " ",
                         schedule.machines[i].scheduledEvents[k].startTime,
                         schedule.machines[i].scheduledEvents[k].endTime,
+                        " ",
                         " ",
                         " ",
                         " ",
@@ -130,7 +132,7 @@ namespace GeneticAlgorithm
                     else
                     {
                         Console.WriteLine(
-                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10}",
+                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10} {12, -10}",
                         schedule.machines[i].scheduledEvents[k].index,
                         schedule.machines[i].scheduledEvents[k].type,
                         schedule.machines[i].scheduledEvents[k].job.readyTime,
@@ -141,6 +143,7 @@ namespace GeneticAlgorithm
                         schedule.machines[i].scheduledEvents[k].job.isGeared,
                         schedule.machines[i].scheduledEvents[k].job.isDedicated,
                         schedule.machines[i].scheduledEvents[k].job.shipper,
+                        schedule.machines[i].scheduledEvents[k].job.ogv.index,
                         schedule.machines[i].scheduledEvents[k].job.machineIdUnload,
                         schedule.machines[i].scheduledEvents[k].job.machineIdBarge
                         );

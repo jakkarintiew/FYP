@@ -51,9 +51,9 @@ namespace GeneticAlgorithm
             int repeated_generations = 0;
 
             while (
-                ga.Generation < Data.maxGenerations &&
-                repeated_generations < Data.maxRepeatedGenerations &&
-                ga.BestFitness > Data.solution ||
+                ga.Generation < Data.MaxGenerations &&
+                repeated_generations < Data.MaxRepeatedGenerations &&
+                ga.BestFitness > Data.Solution ||
                 ga.BestFitness == 0
                 )
             {

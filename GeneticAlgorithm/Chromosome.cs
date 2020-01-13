@@ -45,20 +45,20 @@ namespace GeneticAlgorithm
             List<int> tmp = new List<int>();
             int slotPosition;
             
-            for (int i = 0; i < Data.numMachines; i++)
+            for (int i = 0; i < Data.NumMachines; i++)
             {
-                for (int j = 0; j  < Data.numJobs; j ++)
+                for (int j = 0; j  < Data.NumJobs; j ++)
                 {
-                    slotPosition = Data.numJobs * i + j;
+                    slotPosition = Data.NumJobs * i + j;
                     if (genes[slotPosition] <= 100)
                     {
                         tmp.Add(genes[slotPosition]);
                     }
                 }
 
-                for (int j = 0; j < Data.numJobs; j++)
+                for (int j = 0; j < Data.NumJobs; j++)
                 {
-                    slotPosition = Data.numJobs * i + j;
+                    slotPosition = Data.NumJobs * i + j;
                     if (genes[slotPosition] > 100)
                     {
                         tmp.Add(genes[slotPosition]);
@@ -74,27 +74,28 @@ namespace GeneticAlgorithm
             //Console.WriteLine("chrmsm:     [ {0} ]", string.Join(",", genes));
             //Printer printer = new Printer();
             //printer.PrintSchedule(chrmsm.schedule);
+            schedule = new Scheduler();
             schedule.genes = genes;
             schedule.genesToSchedule();
             schedule.GetSchedule();
 
-            Data.objetiveFunction objetive = (Data.objetiveFunction)Data.objectiveCase;
+            Data.ObjetiveFunction objetive = (Data.ObjetiveFunction)Data.objectiveCase;
 
             switch (objetive)
             {
-                case Data.objetiveFunction.TotalCostWithPriority:
+                case Data.ObjetiveFunction.TotalCostWithPriority:
                     fitness = schedule.totalCost;
                     break;
-                case Data.objetiveFunction.TotalCostNoPriority:
+                case Data.ObjetiveFunction.TotalCostNoPriority:
                     fitness = schedule.totalCost;
                     break;
-                case Data.objetiveFunction.DemurrageDespatchCost:
+                case Data.ObjetiveFunction.DemurrageDespatchCost:
                     fitness = schedule.dndCost;
                     break;
-                case Data.objetiveFunction.SumLateStart:
+                case Data.ObjetiveFunction.SumLateStart:
                     fitness = schedule.sumLateStart;
                     break;
-                case Data.objetiveFunction.Makespan:
+                case Data.ObjetiveFunction.Makespan:
                     fitness = schedule.makespan;
                     break;
             }

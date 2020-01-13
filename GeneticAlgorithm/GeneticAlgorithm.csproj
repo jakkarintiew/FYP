@@ -78,6 +78,7 @@
     <Compile Include="Chromosome.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="Machine.cs" />
+    <Compile Include="OGV.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scheduler.cs" />

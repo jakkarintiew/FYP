@@ -9,6 +9,8 @@ namespace GeneticAlgorithm
         public List<int> genes { get; set; }
         public List<Machine> machines { get; set; }
         public List<Job> jobs { get; set; }
+        public List<OGV> ogvs { get; set; }
+
         public double totalCost { get; set; }
         public double travelCost { get; set; }
         public double handlingCost { get; set; }
@@ -25,9 +27,12 @@ namespace GeneticAlgorithm
         {
             machines = new List<Machine>();
             jobs = new List<Job>();
-            machines = Data.machines.Select(x => (Machine)x.Clone()).ToList();
+            machines = Data.Machines.Select(x => (Machine)x.Clone()).ToList();
             foreach (Machine machine in machines) { machine.Init(); }
-            jobs = Data.jobs.Select(x => (Job)x.Clone()).ToList();
+            jobs = Data.Jobs.Select(x => (Job)x.Clone()).ToList();
+            ogvs = Data.OGVs.Select(x => (OGV)x.Clone()).ToList();
+            foreach (Job job in jobs) { job.Init(ogvs); }
+
             genes = new List<int>(new int[machines.Count * jobs.Count]);
             genes = genes.Select(x => -1).ToList();
         }
@@ -35,7 +40,9 @@ namespace GeneticAlgorithm
         public void Assign(Machine machine, Job job)
         {
             job.assignedMachine = machine;
+            job.ogv.assignedMachine = machine;
             machine.assignedJobs.Add(job);
+            
             AssignSchedule(machine, job);
         }
 
@@ -48,15 +55,6 @@ namespace GeneticAlgorithm
             job.procTime = job.quantity * machine.procRate;
 
             job.completeTime = job.startTime + job.procTime;
-
-            if (job.demurrage > 0 && job.isOutOfLaycan == false)
-            {
-                job.dndTime = job.completeTime - (job.readyTime + job.requestedProcRate * job.quantity);
-            }
-            else
-            {
-                job.dndTime = job.procTime - (job.requestedProcRate * job.quantity);
-            }
 
             // Downtimes consideration
             foreach (Stoppage stoppage in machine.stoppages)
@@ -75,10 +73,19 @@ namespace GeneticAlgorithm
                 }
             }
 
-
             job.completeTime = job.startTime + job.procTime;
 
-            job.travelCost = Math.Abs(machine.latestPosition - job.position);
+
+            if (job.demurrage > 0 && job.isOutOfLaycan == false)
+            {
+                job.dndTime = job.completeTime - (job.readyTime + job.requestedProcRate * job.quantity);
+            }
+            else
+            {
+                job.dndTime = job.procTime - (job.requestedProcRate * job.quantity);
+            }
+
+            getCost(machine, job);
             //machine.accumDistance += Math.Abs(machine.latestPosition - job.position);
             // Update machine
             machine.latestReadyTime = job.completeTime;
@@ -110,9 +117,11 @@ namespace GeneticAlgorithm
 
             machines = new List<Machine>();
             jobs = new List<Job>();
-            machines = Data.machines.Select(x => (Machine)x.Clone()).ToList();
+            machines = Data.Machines.Select(x => (Machine)x.Clone()).ToList();
+            jobs = Data.Jobs.Select(x => (Job)x.Clone()).ToList();
+            ogvs = Data.OGVs.Select(x => (OGV)x.Clone()).ToList();
             foreach (Machine machine in machines) { machine.Init(); }
-            jobs = Data.jobs.Select(x => (Job)x.Clone()).ToList();
+            foreach (Job job in jobs) { job.Init(ogvs); }
 
 
             for (int i = 0; i < genes.Count; i++)
@@ -159,7 +168,7 @@ namespace GeneticAlgorithm
             {
                 for (int j = 0; j < machines[i].assignedJobs.Count; j++)
                 {
-                    if (j > 0 && Math.Abs(machines[i].assignedJobs[j].readyTime - machines[i].assignedJobs[j - 1].readyTime) < 10800)
+                    if (j > 0 && Math.Abs(machines[i].assignedJobs[j].readyTime - machines[i].assignedJobs[j - 1].readyTime) < Data.PriorityGapTime)
                     {
                         if (machines[i].assignedJobs[j].priority > machines[i].assignedJobs[j - 1].priority)
                         {
@@ -176,14 +185,8 @@ namespace GeneticAlgorithm
                 }
             }
 
-            for (int i = 0; i < machines.Count; i++)
-            {
-                machines[i].latestReadyTime = machines[i].readyTime;
-                for (int j = 0; j < machines[i].assignedJobs.Count; j++)
-                {
-                    AssignSchedule(machines[i], machines[i].assignedJobs[j]);
-                }
-            }
+            scheduleToGenes();
+            genesToSchedule();
         }
 
         public void SortByReadyTime()
@@ -193,14 +196,8 @@ namespace GeneticAlgorithm
                 machines[i].assignedJobs = machines[i].assignedJobs.OrderBy(o => o.readyTime).ToList();
             }
 
-            for (int i = 0; i < machines.Count; i++)
-            {
-                machines[i].latestReadyTime = machines[i].readyTime;
-                for (int j = 0; j < machines[i].assignedJobs.Count; j++)
-                {
-                    AssignSchedule(machines[i], machines[i].assignedJobs[j]);
-                }
-            }
+            scheduleToGenes();
+            genesToSchedule();
         }
 
         public void GetEventSchedule()
@@ -265,8 +262,9 @@ namespace GeneticAlgorithm
                 }
             }
 
-            totalCost = travelCost + handlingCost + dndCost;
             GetEventSchedule();
+
+            totalCost = travelCost + handlingCost + dndCost;
             makespan = jobs.Select(x => x.completeTime).Max();
         }
 
@@ -276,7 +274,7 @@ namespace GeneticAlgorithm
 
             for (int i = 0; i < machines.Count; i++)
             {
-                if (Data.isAllMachinesUtilized && machines.Count(mc => !mc.isThirdParty) <= jobs.Count && !machines[i].isThirdParty && machines[i].assignedJobs.Count == 0)
+                if (Data.IsAllMachinesUtilized && machines.Count(mc => !mc.isThirdParty) <= jobs.Count && !machines[i].isThirdParty && machines[i].assignedJobs.Count == 0)
                 {
                     return false;
                 }
@@ -304,13 +302,13 @@ namespace GeneticAlgorithm
 
         public bool IsFeasible(Machine machine, Job job)
         {
-            Data.dedicationType dedicationType = (Data.dedicationType)Data.dedicationCase;
+            Data.DedicationType dedicationType = (Data.DedicationType)Data.DedicationCase;
 
-            if (IsGearFeasible(machine, job) && IsUnloadingFeasible(machine, job) && IsBargeFeasible(machine, job))
+            if (IsGearFeasible(machine, job) && IsUnloadingFeasible(machine, job) && IsBargeFeasible(machine, job) && IsOGVFeasible(machine, job))
             {
                 switch (dedicationType)
                 {
-                    case Data.dedicationType.Flexible:
+                    case Data.DedicationType.Flexible:
                         if (IsFlexDedicationFeasible(machine, job))
                         {
                             return true;
@@ -319,7 +317,7 @@ namespace GeneticAlgorithm
                         {
                             return false;
                         }
-                    case Data.dedicationType.Strict:
+                    case Data.DedicationType.Strict:
                         if (IsStrictDedicationFeasible(machine, job))
                         {
                             return true;
@@ -335,6 +333,7 @@ namespace GeneticAlgorithm
             {
                 return false;
             }
+
             return false;
         }
 
@@ -446,6 +445,84 @@ namespace GeneticAlgorithm
             {
                 return true;
             }
+        }
+
+        public double getEarliersJobStartTime (Machine machine, Job job)
+        {
+            double startTime;
+            double procTime;
+            double completeTime;
+
+            startTime = Math.Max(machine.latestReadyTime, job.readyTime);
+
+            // Calculate time needed to process Job (quantity * time needed per unit quanitit)
+            procTime = job.quantity * machine.procRate;
+
+            completeTime = startTime + procTime;
+
+            // Downtimes consideration
+            foreach (Stoppage stoppage in machine.stoppages)
+            {
+
+                if (startTime <= stoppage.start)
+                {
+                    if (completeTime >= stoppage.start)
+                    {
+                        procTime = procTime + stoppage.end - stoppage.start;
+                    }
+                }
+                else if (startTime >= stoppage.start && startTime <= stoppage.end)
+                {
+                    startTime = stoppage.end;
+                }
+            }
+
+            completeTime = startTime + procTime;
+
+            return startTime;
+        }
+
+        public bool IsOGVFeasible(Machine machine, Job job)
+        {
+            Machine targetMachine = new Machine();
+            Job lastJob = new Job();
+
+
+
+            if (job.ogv.assignedMachine.index == -1)
+            {
+                return true;
+            }
+
+            foreach (Machine _machine in machines)
+            {
+                foreach (Job _job in machine.assignedJobs)
+                {
+                    if (job.ogv.index == _job.ogv.index)
+                    {
+                        targetMachine = _machine;
+                        lastJob = _job;
+                    }
+                }
+            }
+
+
+            if (job.ogv.assignedMachine.index == machine.index)
+            {
+                return true;
+            }
+            else
+            {
+                if (getEarliersJobStartTime(machine, job) - lastJob.completeTime > Data.InterrupedSetUpTime)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
         }
 
     }

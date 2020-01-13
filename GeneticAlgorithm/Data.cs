@@ -8,29 +8,32 @@ namespace GeneticAlgorithm
     public static class Data
     {
         // Problem static data
-        public static List<Stoppage> all_stoppages = new ExcelMapper(@"..\..\..\in.xlsx").Fetch<Stoppage>("stoppages").ToList();
-        public static List<Machine> machines = new ExcelMapper(@"..\..\..\in.xlsx").Fetch<Machine>("machines").ToList();
-        public static List<Job> jobs = new ExcelMapper(@"..\..\..\in.xlsx").Fetch<Job>("jobs").ToList().OrderBy(o => o.readyTime).ToList();
-        public static int numMachines = machines.Count;
-        public static int numJobs = jobs.Count;
+        public static List<Stoppage> AllStoppages = new ExcelMapper(@"..\..\..\in.xlsx").Fetch<Stoppage>("stoppages").ToList();
+        public static List<OGV> OGVs = new ExcelMapper(@"..\..\..\in.xlsx").Fetch<OGV>("ogvs").ToList();
+        public static List<Machine> Machines = new ExcelMapper(@"..\..\..\in.xlsx").Fetch<Machine>("machines").ToList();
+        public static List<Job> Jobs = new ExcelMapper(@"..\..\..\in.xlsx").Fetch<Job>("jobs").ToList().OrderBy(o => o.readyTime).ToList();
+        public static int NumMachines = Machines.Count;
+        public static int NumJobs = Jobs.Count;
 
-        // GA parameters
-        public static int populationSize = 200;
-        public static int numNewDNA = (int)0.2 * populationSize;
-        public static float mutationRate = 0.05f;
-        public static int elitism = 5;
-        public enum crossoverFunction { Uniform, SinglePoint, TwoPoint}
-        public static int crossoverMethod = 0;
-        public enum objetiveFunction { TotalCostNoPriority, TotalCostWithPriority, DemurrageDespatchCost, SumLateStart, Makespan }
+        // GA hyper-parameters
+        public static int PopulationSize = 200;
+        public static int NumNewDNA = (int)0.2 * PopulationSize;
+        public static float MutationRate = 0.05f;
+        public static int Elitism = 5;
+        public enum CrossoverFunction { Uniform, SinglePoint, TwoPoint}
+        public static int CrossoverMethod = 0;
+        public enum ObjetiveFunction { TotalCostNoPriority, TotalCostWithPriority, DemurrageDespatchCost, SumLateStart, Makespan }
         public static int objectiveCase = 1;
-        public enum dedicationType { Flexible, Strict }
-        public static int dedicationCase = 0;
-        public static bool isAllMachinesUtilized = true;
+        public enum DedicationType { Flexible, Strict }
+        public static int DedicationCase = 0;
+        public static bool IsAllMachinesUtilized = true;
+        public static double PriorityGapTime = 10800.00;
+        public static double InterrupedSetUpTime = 10800.00;
 
         // Stopping conditions
-        public static double solution = double.MinValue;
-        public static int maxRepeatedGenerations = 100;
-        public static int maxGenerations = 1000;
+        public static double Solution = double.MinValue;
+        public static int MaxRepeatedGenerations = 100;
+        public static int MaxGenerations = 500;
     }
 }
 

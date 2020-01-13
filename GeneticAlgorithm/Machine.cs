@@ -34,7 +34,14 @@ namespace GeneticAlgorithm
         // Construtor
         public Machine()
         {
-           
+            index = -1;
+            position = -1;
+            readyTime = -1;
+            procRate = -1;
+            loadingUnitCost = -1;
+            isGearAccepting = false;
+            isDedicated = false;
+            dedicatedCustomer = "";
         }
         public void Init()
         {
@@ -44,7 +51,7 @@ namespace GeneticAlgorithm
             stoppages = new List<Stoppage>();
             scheduledEvents = new List<Event>();
 
-            foreach (Stoppage stoppage in Data.all_stoppages)
+            foreach (Stoppage stoppage in Data.AllStoppages)
             {
                 if (stoppage.index == index)
                 {
