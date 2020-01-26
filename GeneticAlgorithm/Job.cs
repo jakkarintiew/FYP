@@ -45,21 +45,21 @@ namespace GeneticAlgorithm
         public Job()
         {
             this.index = -1;
-            this.position = -1;
-            this.readyTime = -1;
-            this.requestedProcRate = -1;
-            this.quantity = -1;
-            this.isGeared = false;
-            this.isDedicated = false;
-            this.shipper = "-1";
-            this.isOutOfLaycan = false;
-            this.isUnloading = false;
-            this.machineIdUnload = -1;
-            this.isBarge = false;
-            this.machineIdBarge = -1;
-            this.demurrage = -1;
-            this.despatch = -1;
-            this.priority = -1;
+            //this.position = -1;
+            //this.readyTime = -1;
+            //this.requestedProcRate = -1;
+            //this.quantity = -1;
+            //this.isGeared = false;
+            //this.isDedicated = false;
+            //this.shipper = "-1";
+            //this.isOutOfLaycan = false;
+            //this.isUnloading = false;
+            //this.machineIdUnload = -1;
+            //this.isBarge = false;
+            //this.machineIdBarge = -1;
+            //this.demurrage = -1;
+            //this.despatch = -1;
+            //this.priority = -1;
         }
         public void Init(List<OGV> ogvs)
         {

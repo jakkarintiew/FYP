@@ -17,7 +17,7 @@ namespace GeneticAlgorithm
         {
             // Print problem description
             Console.WriteLine("======================= Assignment Problem Description =======================");
-            Console.WriteLine("Number of workers: {0}", Data.NumMachines);
+            Console.WriteLine("Number of workers: {0}", Data.NumAllMachines);
             Console.WriteLine("Number of jobs: {0}", Data.NumJobs);
             Console.WriteLine("==============================================================================");
         }
@@ -33,7 +33,7 @@ namespace GeneticAlgorithm
             sb.AppendLine("------------------------------------------------------------------------");
             sb.AppendFormat("Current Generation:        {0}     \n", ga.Generation);
             //sb.AppendFormat("Current Assignment:        [ {0} ] \n", string.Join(",", ga.BestGenes.Select(x => x <= 100)));
-            sb.AppendFormat("Fitness Fucntion:          {0}     \n", Enum.GetName(typeof(Data.ObjetiveFunction), Data.objectiveCase));
+            sb.AppendFormat("Fitness Fucntion:          {0}     \n", Enum.GetName(typeof(Data.ObjetiveFunction), Data.ObjectiveCase));
             sb.AppendFormat("Crossover Fucntion:        {0}     \n", Enum.GetName(typeof(Data.CrossoverFunction), Data.CrossoverMethod));
             sb.AppendFormat("Dedication Rule:           {0}     \n", Enum.GetName(typeof(Data.DedicationType), Data.DedicationCase));
             sb.AppendFormat("All Utilized:              {0}     \n", Data.IsAllMachinesUtilized);
@@ -60,7 +60,7 @@ namespace GeneticAlgorithm
             Console.WriteLine("=================================== Result ===================================");
             Console.WriteLine("Generation:          {0}",       ga.Generation);
             Console.WriteLine("Genes:               [ {0} ]",   String.Join(", ", ga.BestGenes));
-            Console.WriteLine("Fitness Fucntion:    {0}",       Enum.GetName(typeof(Data.ObjetiveFunction), Data.objectiveCase));
+            Console.WriteLine("Fitness Fucntion:    {0}",       Enum.GetName(typeof(Data.ObjetiveFunction), Data.ObjectiveCase));
             Console.WriteLine("Crossover Fucntion:  {0}",       Enum.GetName(typeof(Data.CrossoverFunction), Data.CrossoverMethod));
             Console.WriteLine("Dedication Rule:     {0}",       Enum.GetName(typeof(Data.DedicationType), Data.DedicationCase));
             Console.WriteLine("All Utilized:        {0}",       Data.IsAllMachinesUtilized);

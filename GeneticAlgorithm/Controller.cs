@@ -27,9 +27,13 @@ namespace GeneticAlgorithm
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
+            Data.init3rdMachines();
+            printer = new Printer();
+            printer.PrintProblemDescription();
+
             // Initialize ga instance
             ga = new GA();
-            printer = new Printer();
+
 
             out1_csvWriter = new Writer(
                 @"..\..\..\out1.csv",
@@ -41,7 +45,6 @@ namespace GeneticAlgorithm
                 "machineId,position,readyTime,procRate,latestPosition,latestReadyTime,loadingUnitCost,isGearAccepting,isDedicated,dedicatedCustomer,isThirdParty,isCompulsary,eventId,eventType,eventStartTime,eventEndTime,jobId,position,readyTime,requestedProcRate,requestedProcTime,procTime,quantity,isGeared,isDedicated,shipper,isOutOfLaycan,isUnloading,machineIdUnload,isBarge,machineIdBarge,demurrage,despatch,priority,totalCost,travelCost,handlingCost,dndCost"
                 );
 
-            printer.PrintProblemDescription();
 
             // Update algorithm until stopping conditions are met:
             // Condition 1: if total number of generation reaches a threshold

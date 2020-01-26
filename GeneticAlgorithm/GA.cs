@@ -27,7 +27,7 @@ namespace GeneticAlgorithm
             MutationRate = Data.MutationRate;
             Population = new List<Chromosome>(Data.PopulationSize);
             random = new Mcg59(RandomSeed.Robust());
-            chromoSize = Data.NumMachines;
+            chromoSize = Data.NumAllMachines;
             BestGenes = new List<int>(chromoSize);
 
 
@@ -42,7 +42,7 @@ namespace GeneticAlgorithm
         public void NewGeneration()
         {
             int numNewDNA = Data.NumNewDNA;
-            bool crossoverNewDNA = false;
+            bool crossoverNewDNA = true;
             int finalCount = Data.PopulationSize + numNewDNA;
             List<Chromosome> newPopulation = new List<Chromosome>();
 
@@ -92,13 +92,14 @@ namespace GeneticAlgorithm
 
         private int ProbabilityMachineSelection(Vector<double> randSelectionColumn)
         {
-            var machine_index = Enumerable.Range(0, Data.NumMachines).ToList();
-            Vector<double> transform_column = randSelectionColumn.Sum() / randSelectionColumn;
-            Vector<double> prob_vector  = transform_column / transform_column.Sum();
-            Dictionary<int, double>  dict = machine_index.Zip(prob_vector, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+            var machine_index = Enumerable.Range(0, Data.NumAllMachines).ToList();
+            Vector<double> transform_column = randSelectionColumn.Sum() / (randSelectionColumn + 1);
+            Vector<double> prob_vector = transform_column / transform_column.Sum();
+            Dictionary<int, double> dict = machine_index.Zip(prob_vector, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
 
             double randDouble = random.NextDouble();
             double cumulative = 0.0;
+
 
             for (int i = 0; i < dict.Count; i++)
             {
@@ -110,42 +111,54 @@ namespace GeneticAlgorithm
                     return selectedElement;
                 }
             }
+
             return -1;
         }
 
-
         private List<int> GetRandomGenes()
         {
+            Restart:
             Scheduler schedule = new Scheduler();
-            Data.ObjetiveFunction objetiveFunction = (Data.ObjetiveFunction)Data.objectiveCase;
-            Vector<double> randSelectionColumn = Vector<double>.Build.Dense(Data.NumMachines);
+
+            Vector<double> randSelectionColumn = Vector<double>.Build.Dense(Data.NumAllMachines);
             bool isFeasible = false;
             int counter = 0;
 
-            if (Data.IsAllMachinesUtilized && schedule.machines.Count(mc => !mc.isThirdParty) <= schedule.jobs.Count)
+            // If IsAllMachinesUtilized, randomly assigned one job to each compulsary machine
+            if (Data.IsAllMachinesUtilized)
             {
                 foreach (Machine machine in schedule.machines) 
                 {
                     if (!machine.isThirdParty || machine.isCompulsary)
                     {
-                        isFeasible = false;
-                        counter = 0;
-                        while (!isFeasible)
+                        
+                        int randJobIndex = random.Next(Data.NumJobs);
+                        if (schedule.jobs[randJobIndex].assignedMachine == null)
                         {
-                            int randJobIndex = random.Next(schedule.jobs.Count);
-                            if (!schedule.IsFeasible(machine, schedule.jobs[randJobIndex]))
+                            isFeasible = false;
+                            counter = 0;
+                            while (!isFeasible)
                             {
-                                counter++;
-                            }
-                            else if (schedule.jobs[randJobIndex].assignedMachine == null)
-                            {
-                                schedule.Assign(machine, schedule.jobs[randJobIndex]);
-                                schedule.scheduleToGenes();
-                                isFeasible = true;
+                                if (schedule.IsFeasible(machine, schedule.jobs[randJobIndex]))
+                                {
+                                    schedule.Assign(machine, schedule.jobs[randJobIndex]);
+                                    schedule.ScheduleToGenes();
+                                    isFeasible = true;
+
+                                }
+                                else
+                                {
+                                    counter++;
+                                    if (counter > 50)
+                                    {
+                                        goto Restart;
+                                    }
+                                }
                             }
                         }
                     }
-                    
+                    //Console.WriteLine(counter);
+                    //Console.WriteLine(isFeasible);
                 }
             }
 
@@ -158,25 +171,7 @@ namespace GeneticAlgorithm
 
                     for (int i = 0; i < schedule.machines.Count; i++)
                     {
-
-                        switch (objetiveFunction)
-                        {
-                            case Data.ObjetiveFunction.TotalCostWithPriority:
-                                randSelectionColumn[i] = schedule.getCost(schedule.machines[i], schedule.jobs[j]);
-                                break;
-                            case Data.ObjetiveFunction.TotalCostNoPriority:
-                                randSelectionColumn[i] = schedule.getCost(schedule.machines[i], schedule.jobs[j]);
-                                break;
-                            case Data.ObjetiveFunction.DemurrageDespatchCost:
-                                randSelectionColumn[i] = schedule.getCost(schedule.machines[i], schedule.jobs[j]);
-                                break;
-                            case Data.ObjetiveFunction.SumLateStart:
-                                randSelectionColumn[i] = Math.Abs(schedule.machines[i].latestReadyTime - schedule.jobs[j].readyTime);
-                                break;
-                            case Data.ObjetiveFunction.Makespan:
-                                randSelectionColumn[i] = Math.Abs(schedule.machines[i].latestReadyTime - schedule.jobs[j].readyTime);
-                                break;
-                        }
+                        randSelectionColumn[i] = schedule.CalculateIncrementalFitness(schedule.machines[i], schedule.jobs[j]);
                     }
 
                     while (!isFeasible)
@@ -201,8 +196,7 @@ namespace GeneticAlgorithm
                 }
             }
 
-
-            schedule.scheduleToGenes();
+            schedule.ScheduleToGenes();
             //Console.WriteLine(schedule.IsOverallFeasible());
             //Console.WriteLine("scheduleToGenes: [ {0} ]", string.Join(",", schedule.genes));
 
@@ -253,8 +247,8 @@ namespace GeneticAlgorithm
 
         private Chromosome ChooseParent()
         {
-            // Tournoment selection
-            int numCompetitors = 2; // Binary tournoment
+            // Tournament selection
+            int numCompetitors = 2; // Binary tournament
             Chromosome randSelection;
             Chromosome best = null;
 
@@ -282,7 +276,6 @@ namespace GeneticAlgorithm
         }
 
 
-
         // Crossover function
         public Chromosome Crossover(Chromosome firstParent, Chromosome secondParent)
         {
@@ -306,6 +299,7 @@ namespace GeneticAlgorithm
                     Chromosome secondChild = new Chromosome(firstParent.genes.Count, GetRandomGenes, shouldInitGenes: false);
 
                     counter++;
+
                     if (counter > 100)
                     {
                         //Console.WriteLine("wooow");
@@ -376,8 +370,7 @@ namespace GeneticAlgorithm
         // Mutation function: simply get a random new gene
         public Chromosome Mutate(Chromosome chromosome, float mutationRate)
         {
-            bool isFeasible = false;
-            int counter = 0;
+
             Chromosome mutated = new Chromosome(chromosome.genes.Count, GetRandomGenes, shouldInitGenes: true);
             mutated.genes = chromosome.genes;
             mutated.CalculateFitness();
@@ -441,20 +434,6 @@ namespace GeneticAlgorithm
                     mutated.MakeProperGenes();
                     mutated.CalculateFitness();
                 }
-
-                //if (isFeasible)
-                //{
-                //    Console.WriteLine(mutated.schedule.IsOverallFeasible());
-                //    Console.WriteLine("before mutation genes:  [ {0} ]", string.Join(",", chromosome.genes));
-                //    Console.WriteLine("before mutation fitness:{0}", chromosome.fitness);
-
-                //    Console.WriteLine("after mutation genes :  [ {0} ]\n\n", string.Join(",", mutated.genes));
-                //    Console.WriteLine("after mutation fitness: {0}", mutated.fitness);
-
-                //    //Printer printer = new Printer();
-                //    //printer.PrintSchedule(mutated.schedule);
-                //}
-
 
             }
             return mutated;

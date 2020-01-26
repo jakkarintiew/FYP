@@ -21,7 +21,7 @@ namespace GeneticAlgorithm
         // third-party prop
         public bool isThirdParty { get; set; }
         public bool isCompulsary { get; set; }
-         
+        public double rentalCost { get; set; }
 
         public double latestPosition { get; set; }
         public double accumDistance { get; set; }
@@ -35,36 +35,50 @@ namespace GeneticAlgorithm
         public Machine()
         {
             index = -1;
-            position = -1;
-            readyTime = -1;
-            procRate = -1;
-            loadingUnitCost = -1;
-            isGearAccepting = false;
-            isDedicated = false;
-            dedicatedCustomer = "";
+            //position = -1;
+            //readyTime = -1;
+            //procRate = -1;
+            //loadingUnitCost = -1;
+            //isGearAccepting = false;
+            //isDedicated = false;
+            //isThirdParty = false;
+            //isCompulsary = false;
+            //rentalCost = 0;
+            //dedicatedCustomer = "";
         }
         public void Init()
         {
-            latestPosition = position;
-            latestReadyTime = readyTime;
             assignedJobs = new List<Job>();
             stoppages = new List<Stoppage>();
             scheduledEvents = new List<Event>();
 
-            foreach (Stoppage stoppage in Data.AllStoppages)
+            if (!isThirdParty)
             {
-                if (stoppage.index == index)
-                {
-                    //Console.WriteLine("{0}: {1} -- {2}", stoppage.index, stoppage.start, stoppage.end);
-                    stoppages.Add(stoppage);
-                    scheduledEvents.Add(new Event(
-                        type: "Stoppage",
-                        startTime: stoppage.start,
-                        endTime: stoppage.end,
-                        job: new Job()
-                        ));
-                }
+                foreach (Stoppage stoppage in Data.AllStoppages) if (stoppage.index == index)
+                    {
+                        stoppages.Add(stoppage);
+                        scheduledEvents.Add(new Event(
+                            type: "Stoppage",
+                            startTime: stoppage.start,
+                            endTime: stoppage.end,
+                            job: new Job()
+                            ));
+                    }
             }
+            else
+            {
+                position = Data.ThirdMachinePosition;
+                readyTime = Data.ThirdMachineReadyTime;
+                procRate = Data.ThirdMachineProcRate;
+                rentalCost = Data.ThirdMachineRentalCost;
+                isDedicated = false;
+                dedicatedCustomer = "notdedicated";
+                isGearAccepting = true;
+            }
+
+            latestPosition = position;
+            latestReadyTime = readyTime;
+
         }
 
         public object Clone()
@@ -84,6 +98,7 @@ namespace GeneticAlgorithm
                 dedicatedCustomer = this.dedicatedCustomer,
                 isThirdParty = this.isThirdParty,
                 isCompulsary = this.isCompulsary,
+                rentalCost = this.rentalCost,
                 assignedJobs = new List<Job>(),
                 stoppages = this.stoppages,
                 scheduledEvents = new List<Event>(),

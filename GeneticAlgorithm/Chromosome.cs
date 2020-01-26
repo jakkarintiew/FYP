@@ -45,7 +45,7 @@ namespace GeneticAlgorithm
             List<int> tmp = new List<int>();
             int slotPosition;
             
-            for (int i = 0; i < Data.NumMachines; i++)
+            for (int i = 0; i < Data.NumAllMachines; i++)
             {
                 for (int j = 0; j  < Data.NumJobs; j ++)
                 {
@@ -76,16 +76,12 @@ namespace GeneticAlgorithm
             //printer.PrintSchedule(chrmsm.schedule);
             schedule = new Scheduler();
             schedule.genes = genes;
-            schedule.genesToSchedule();
+            schedule.GenesToSchedule();
             schedule.GetSchedule();
 
-            Data.ObjetiveFunction objetive = (Data.ObjetiveFunction)Data.objectiveCase;
-
-            switch (objetive)
+            switch ((Data.ObjetiveFunction)Data.ObjectiveCase)
             {
                 case Data.ObjetiveFunction.TotalCostWithPriority:
-                    fitness = schedule.totalCost;
-                    break;
                 case Data.ObjetiveFunction.TotalCostNoPriority:
                     fitness = schedule.totalCost;
                     break;
