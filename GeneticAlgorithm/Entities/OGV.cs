@@ -8,22 +8,22 @@ namespace GeneticAlgorithm
 {
     public class OGV: ICloneable
     {
-        public int index { get; set; }
-        public string shipper { get; set; }
-        public Machine assignedMachine { get; set; }
+        public int Index { get; set; }
+        public string Shipper { get; set; }
+        public Machine AssignedMachine { get; set; }
 
         public OGV()
         {
-            assignedMachine = new Machine();
+            AssignedMachine = new Machine();
         }
 
         public object Clone()
         {
             return new OGV
             {
-                index = this.index,
-                shipper = this.shipper,
-                assignedMachine = this.assignedMachine
+                Index = this.Index,
+                Shipper = this.Shipper,
+                AssignedMachine = this.AssignedMachine
             };
         }
     }

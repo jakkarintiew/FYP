@@ -6,114 +6,150 @@ namespace GeneticAlgorithm
 {
     public class Scheduler
     {
-        public List<int> genes { get; set; }
-        public List<Machine> machines { get; set; }
-        public List<Job> jobs { get; set; }
-        public List<OGV> ogvs { get; set; }
+        public List<int> Genes { get; set; }
+        public List<Machine> Machines { get; set; }
+        public List<Job> Jobs { get; set; }
+        public List<OGV> OGVs { get; set; }
 
-        public double totalCost { get; set; }
-        public double travelCost { get; set; }
-        public double handlingCost { get; set; }
-        public double dndCost { get; set; }
-        public double sumLateStart { get; set; }
-        public double makespan { get; set; }
-        public bool isFeasible { get; set; }
-        public bool gearFeasible { get; set; }
-        public bool dedicationFeasible { get; set; }
+        public double TotalCost { get; set; }
+        public double TravelCost { get; set; }
+        public double HandlingCost { get; set; }
+        public double RentalCost { get; set; }
+        public double DndCost { get; set; }
+        public double SumLateStart { get; set; }
+        public double Makespan { get; set; }
+        public bool GearFeasible { get; set; }
+        public bool DedicationFeasible { get; set; }
 
 
         // Construtor
-        public Scheduler()
+        public Scheduler(List<int> genes)
         {
             InitObjects();
-            genes = new List<int>(new int[machines.Count * jobs.Count]);
-            genes = genes.Select(x => -1).ToList();
+            //Genes = new List<int>(Enumerable.Repeat(-1, Settings.NumAllMachines * Settings.NumJobs));
+            Genes = genes;            
         }
         
         public void InitObjects()
-        {
-            
-            machines = new List<Machine>();
-            jobs = new List<Job>();
-            machines = Data.Machines.Select(x => (Machine)x.Clone()).ToList();
-            jobs = Data.Jobs.Select(x => (Job)x.Clone()).ToList();
-            ogvs = Data.OGVs.Select(x => (OGV)x.Clone()).ToList();
-            foreach (Machine machine in machines) { machine.Init(); }
-            foreach (Job job in jobs) { job.Init(ogvs); }
+        {   
+            Machines = new List<Machine>();
+            Jobs = new List<Job>();
+            Machines = Settings.Machines.Select(x => (Machine)x.Clone()).ToList();
+            Jobs = Settings.Jobs.Select(x => (Job)x.Clone()).ToList();
+            OGVs = Settings.OGVs.Select(x => (OGV)x.Clone()).ToList();
+            foreach (Machine machine in Machines) { machine.Init(); }
+            foreach (Job job in Jobs) { job.Init(OGVs); }
         }
 
         public void Assign(Machine machine, Job job)
         {
-            job.assignedMachine = machine;
-            job.ogv.assignedMachine = machine;
-            machine.assignedJobs.Add(job);
-            
-            AssignSchedule(machine, job);
+            job.AssignedMachine = machine;
+            job.Ogv.AssignedMachine = machine;
+            machine.AssignedJobs.Add(job);
+            machine.AssignedJobIds.Add(job.Index);
+            UpdateSchedule(machine, job);
         }
 
-        public void AssignSchedule(Machine machine, Job job)
+        public void UpdateSchedule(Machine machine, Job job)
         {
 
-            job.startTime = Math.Max(machine.latestReadyTime, job.readyTime);
-
-            // Calculate time needed to process Job (quantity * time needed per unit quanitit)
-            job.procTime = job.quantity * machine.procRate;
-
-            job.completeTime = job.startTime + job.procTime;
-
+            job.StartTime = Math.Max(machine.LatestReadyTime, job.ReadyTime);
+            job.ProcTime = job.Quantity * machine.ProcRate;
+            job.CompleteTime = job.StartTime + job.ProcTime;
+            
             // Downtimes consideration
-            foreach (Stoppage stoppage in machine.stoppages)
+            foreach (Stoppage stoppage in machine.Stoppages)
             {
-
-                if (job.startTime <= stoppage.start)
+                if (job.StartTime <= stoppage.StartTime)
                 {
-                    if (job.completeTime >= stoppage.start)
+                    if (job.CompleteTime >= stoppage.StartTime)
                     {
-                        job.procTime = job.procTime + stoppage.end - stoppage.start;
+                        job.ProcTime = job.ProcTime + stoppage.EndTime - stoppage.StartTime;
                     }
                 }
-                else if (job.startTime >= stoppage.start && job.startTime <= stoppage.end)
+                else if (job.StartTime >= stoppage.StartTime && job.StartTime <= stoppage.EndTime)
                 {
-                    job.startTime = stoppage.end;
+                    job.StartTime = stoppage.EndTime;
                 }
             }
 
-            job.completeTime = job.startTime + job.procTime;
+            job.CompleteTime = job.StartTime + job.ProcTime;
+            job.LateStartTime = job.StartTime - job.ReadyTime;
 
-
-            if (job.demurrage > 0 && job.isOutOfLaycan == false)
+            if (job.Demurrage > 0 && job.IsOutOfLaycan == false)
             {
-                job.dndTime = job.completeTime - (job.readyTime + job.requestedProcRate * job.quantity);
+                job.DndTime = job.CompleteTime - (job.ReadyTime + job.RequestedProcRate * job.Quantity);
             }
             else
             {
-                job.dndTime = job.procTime - (job.requestedProcRate * job.quantity);
+                job.DndTime = job.ProcTime - (job.RequestedProcRate * job.Quantity);
             }
 
-            job.travelCost = Math.Abs(machine.latestPosition - job.position);
-            job.handlingCost = machine.loadingUnitCost * job.quantity;
-            job.dndCost = 0.00;
-
-            if (job.isLateComplete())
+            job.TravelCost = CalculateDistance(job.Latitude, job.Latitude, machine.Latitude, machine.Longitude);
+            job.HandlingCost = machine.LoadingUnitCost * job.Quantity;
+            job.RentalCost = machine.RentalUnitCost * job.Quantity;
+            if (job.IsLateComplete())
             {
-                job.dndCost = job.demurrage * job.dndTime;
+                job.DndCost = job.Demurrage * job.DndTime;
             }
             else
             {
-                job.dndCost = job.despatch * job.dndTime;
+                job.DndCost = job.Despatch * job.DndTime;
             }
 
-            job.totalCost = job.travelCost + job.handlingCost + job.dndCost;
+            job.TotalCost = job.TravelCost + job.HandlingCost + job.RentalCost + job.DndCost;
 
-            //machine.accumDistance += Math.Abs(machine.latestPosition - job.position);
             // Update machine
-            machine.latestReadyTime = job.completeTime;
-            machine.latestPosition = job.position;
+            machine.TravelTime = CalculateDistance(job.Latitude, job.Latitude, machine.Latitude, machine.Longitude) / machine.Speed;
+            machine.Latitude = job.Latitude;
+            machine.Longitude = job.Longitude;
+            machine.LatestReadyTime = job.CompleteTime + Settings.CastingOffTime + machine.TravelTime + Settings.AnchorageTime;
+            machine.CumulatedTravelTime += machine.TravelTime;
+            machine.CumulatedDistance += CalculateDistance(job.Latitude, job.Latitude, machine.Latitude, machine.Longitude);
+
+            machine.ScheduledEvents.Add(new Event(
+                            type: "CastingOff",
+                            startTime: job.CompleteTime,
+                            endTime: job.CompleteTime + Settings.CastingOffTime,
+                            job: new Job()
+                            ));
+
+            machine.ScheduledEvents.Add(new Event(
+                            type: "Travel",
+                            startTime: job.CompleteTime + Settings.CastingOffTime,
+                            endTime: job.CompleteTime + Settings.CastingOffTime + machine.TravelTime,
+                            job: new Job()
+                            ));
+
+            machine.ScheduledEvents.Add(new Event(
+                            type: "Anchorage",
+                            startTime: job.CompleteTime + Settings.CastingOffTime + machine.TravelTime,
+                            endTime: machine.LatestReadyTime,
+                            job: new Job()
+                            ));
+
+            //// Downtimes consideration
+            //foreach (Stoppage stoppage in machine.Stoppages)
+            //{
+            //    foreach (Event evt in machine.ScheduledEvents)
+            //    {
+            //        if (evt.Type == "Travel")
+            //        {
+            //            if (evt.StartTime < stoppage.StartTime && stoppage.StartTime < evt.EndTime)
+            //            {
+            //                double delay = stoppage.EndTime - evt.StartTime;
+            //                evt.StartTime = stoppage.EndTime;
+            //                evt.EndTime += delay;
+            //            }
+            //        }
+            //    }
+            //}
         }
 
+        public double CalculateDistance(double x1, double y1, double x2, double y2) => Math.Sqrt(((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
         public double CalculateIncrementalFitness(Machine machine, Job job)
         {
-            Data.ObjetiveFunction objetiveFunction = (Data.ObjetiveFunction)Data.ObjectiveCase;
+            Settings.ObjetiveFunction objetiveFunction = (Settings.ObjetiveFunction)Settings.ObjectiveCase;
 
             double incrementalFitness = 0;
             double travelCost;
@@ -127,44 +163,45 @@ namespace GeneticAlgorithm
 
             switch (objetiveFunction)
             {
-                case Data.ObjetiveFunction.TotalCostWithPriority:
-                case Data.ObjetiveFunction.TotalCostNoPriority:
-                    travelCost = Math.Abs(machine.latestPosition - job.position);
-                    handlingCost = machine.loadingUnitCost * job.quantity;
-                    rentalCost = machine.rentalCost * job.quantity;
-                    if (job.isLateComplete())
+                case Settings.ObjetiveFunction.TotalCostWithPriority:
+                case Settings.ObjetiveFunction.TotalCostNoPriority:
+                    travelCost = CalculateDistance(job.Latitude, job.Latitude, machine.Latitude, machine.Longitude);
+                    handlingCost = machine.LoadingUnitCost * job.Quantity;
+                    rentalCost = machine.RentalUnitCost * job.Quantity;
+                    if (job.IsLateComplete())
                     {
-                        dndCost = job.demurrage * job.dndTime;
+                        dndCost = job.Demurrage * job.DndTime;
                     }
                     else
                     {
-                        dndCost = job.despatch * job.dndTime;
+                        dndCost = job.Despatch * job.DndTime;
                     }
 
-                    totalCost = travelCost + handlingCost + rentalCost + dndCost;
-                    incrementalFitness = totalCost;
+                    TotalCost = travelCost + handlingCost + rentalCost + dndCost;
+                    incrementalFitness = TotalCost;
                     break;
 
-                case Data.ObjetiveFunction.DemurrageDespatchCost:
-                    if (job.isLateComplete())
+                case Settings.ObjetiveFunction.DemurrageDespatchCost:
+                    if (job.IsLateComplete())
                     {
-                        dndCost = job.demurrage * job.dndTime;
+                        dndCost = job.Demurrage * job.DndTime;
                     }
                     else
                     {
-                        dndCost = job.despatch * job.dndTime;
+                        dndCost = 1;
                     }
+
                     incrementalFitness = dndCost;
                     break;
 
-                case Data.ObjetiveFunction.SumLateStart:
+                case Settings.ObjetiveFunction.SumLateStart:
                     startTime = GetJobStartCompleteTime(machine, job).Item1;
-                    lateStartTime = startTime - job.readyTime;
+                    lateStartTime = startTime - job.ReadyTime;
                     incrementalFitness = lateStartTime;
                     break;
-                case Data.ObjetiveFunction.Makespan:
+                case Settings.ObjetiveFunction.Makespan:
                     completeTime = GetJobStartCompleteTime(machine, job).Item2;
-                    increasedMakespan = Math.Max(0, completeTime - jobs.Select(x => x.completeTime).Max());
+                    increasedMakespan = Math.Max(0, completeTime - Jobs.Select(x => x.CompleteTime).Max());
                     incrementalFitness = increasedMakespan;
                     break;
             }
@@ -172,16 +209,39 @@ namespace GeneticAlgorithm
             return incrementalFitness;
         }
 
+        public void MachineJobListToGenes()
+        {
+            int nullCounter = 100;
+
+            for (int i = 0; i < Machines.Count; i++)
+            {
+                for (int j = 0; j < Jobs.Count; j++)
+                {
+                    int slotPosition = Jobs.Count * i + j;
+
+                    if (j < Machines[i].AssignedJobIds.Count)
+                    {
+                        Genes[slotPosition] = Machines[i].AssignedJobIds[j];
+                    }
+                    else
+                    {
+                        nullCounter += 1;
+                        Genes[slotPosition] = nullCounter;
+                    }
+                }
+            }
+        }
+
         public void GenesToSchedule()
         {
             InitObjects();
 
-            for (int i = 0; i < genes.Count; i++)
+            for (int i = 0; i < Genes.Count; i++)
             {
-                if (genes[i] <= 100)
+                if (Genes[i] < 100)
                 {
-                    int machineId = i / jobs.Count;
-                    Assign(machines[machineId], jobs.Find(x => x.index == genes[i]));
+                    int machineId = i / Jobs.Count;
+                    Assign(Machines[machineId], Jobs.Find(x => x.Index == Genes[i]));
                 }
             }
 
@@ -191,20 +251,24 @@ namespace GeneticAlgorithm
         {
             int nullCounter = 100;
 
-            for (int i = 0; i < machines.Count; i++)
+            for (int i = 0; i < Machines.Count; i++)
             {
-                for (int j = 0; j < jobs.Count; j++)
+                for (int j = 0; j < Jobs.Count; j++)
                 {
-                    int slotPosition = jobs.Count * i + j;
+                    int slotPosition = Jobs.Count * i + j;
 
-                    if (j < machines[i].assignedJobs.Count)
+                    if (j < Machines[i].AssignedJobs.Count)
                     {
-                        genes[slotPosition] = machines[i].assignedJobs[j].index;
+                        Genes[slotPosition] = Machines[i].AssignedJobs[j].Index;
                     }
                     else
                     {
                         nullCounter += 1;
-                        genes[slotPosition] = nullCounter;
+
+                        //Console.WriteLine(nullCounter);
+                        //Console.WriteLine(slotPosition);
+                        //Console.WriteLine(string.Join(",", Genes));
+                        Genes[slotPosition] = nullCounter;
                     }
                 }
             }
@@ -213,20 +277,20 @@ namespace GeneticAlgorithm
 
         public void SortByPriority()
         {
-            for (int i = 0; i < machines.Count; i++)
+            for (int i = 0; i < Machines.Count; i++)
             {
-                for (int j = 0; j < machines[i].assignedJobs.Count; j++)
+                for (int j = 0; j < Machines[i].AssignedJobs.Count; j++)
                 {
-                    if (j > 0 && Math.Abs(machines[i].assignedJobs[j].readyTime - machines[i].assignedJobs[j - 1].readyTime) < Data.PriorityGapTime)
+                    if (j > 0 && Math.Abs(Machines[i].AssignedJobs[j].ReadyTime - Machines[i].AssignedJobs[j - 1].ReadyTime) < Settings.PriorityGapTime)
                     {
-                        if (machines[i].assignedJobs[j].priority > machines[i].assignedJobs[j - 1].priority)
+                        if (Machines[i].AssignedJobs[j].Priority > Machines[i].AssignedJobs[j - 1].Priority)
                         {
-                            if (!machines[i].assignedJobs[j].isOutOfLaycan && machines[i].assignedJobs[j].demurrage != 0)
+                            if (!Machines[i].AssignedJobs[j].IsOutOfLaycan && Machines[i].AssignedJobs[j].Demurrage != 0)
                             {
                                 //Console.WriteLine("SWAP");
-                                Job tmp = machines[i].assignedJobs[j];
-                                machines[i].assignedJobs[j] = machines[i].assignedJobs[j - 1];
-                                machines[i].assignedJobs[j - 1] = tmp;
+                                Job tmp = Machines[i].AssignedJobs[j];
+                                Machines[i].AssignedJobs[j] = Machines[i].AssignedJobs[j - 1];
+                                Machines[i].AssignedJobs[j - 1] = tmp;
                                 j = 0;
                             }
                         }
@@ -240,9 +304,9 @@ namespace GeneticAlgorithm
 
         public void SortByReadyTime()
         {
-            for (int i = 0; i < machines.Count; i++)
+            for (int i = 0; i < Machines.Count; i++)
             {
-                machines[i].assignedJobs = machines[i].assignedJobs.OrderBy(o => o.readyTime).ToList();
+                Machines[i].AssignedJobs = Machines[i].AssignedJobs.OrderBy(o => o.ReadyTime).ToList();
             }
 
             ScheduleToGenes();
@@ -251,29 +315,29 @@ namespace GeneticAlgorithm
 
         public void GetEventSchedule()
         {
-            for (int i = 0; i < machines.Count; i++)
+            for (int i = 0; i < Machines.Count; i++)
             {
-                for (int j = 0; j < machines[i].assignedJobs.Count; j++)
+                for (int j = 0; j < Machines[i].AssignedJobs.Count; j++)
                 {
-                    machines[i].scheduledEvents.Add(new Event(
+                    Machines[i].ScheduledEvents.Add(new Event(
                         type: "Job",
-                        startTime: machines[i].assignedJobs[j].startTime,
-                        endTime: machines[i].assignedJobs[j].completeTime,
-                        job: machines[i].assignedJobs[j]
+                        startTime: Machines[i].AssignedJobs[j].StartTime,
+                        endTime: Machines[i].AssignedJobs[j].CompleteTime,
+                        job: Machines[i].AssignedJobs[j]
                     ));
                 }
-                machines[i].scheduledEvents = machines[i].scheduledEvents.OrderBy(o => o.startTime).ToList();
-                for (int k = 0; k < machines[i].scheduledEvents.Count; k++)
+                Machines[i].ScheduledEvents = Machines[i].ScheduledEvents.OrderBy(o => o.StartTime).ToList();
+                for (int k = 0; k < Machines[i].ScheduledEvents.Count; k++)
                 {
-                    machines[i].scheduledEvents[k].index = k;
+                    Machines[i].ScheduledEvents[k].Index = k;
                 }
             }
 
         }
 
-        public void GetSchedule()
+        public void GetOverallSchedule()
         {
-            if (Data.ObjectiveCase == 1)
+            if (Settings.ObjectiveCase == 1)
             {
                 SortByPriority();
             }
@@ -282,60 +346,45 @@ namespace GeneticAlgorithm
                 SortByReadyTime();
             }
 
-            totalCost = 0;
-            travelCost = 0;
-            handlingCost = 0;
-            dndCost = 0;
-            sumLateStart = 0;
+            TravelCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.TravelCost));
+            HandlingCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.HandlingCost));
+            RentalCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.RentalCost));
+            DndCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.DndCost));
+            TotalCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.TotalCost));
+            SumLateStart = Machines.Sum(m => m.AssignedJobs.Sum(j => j.LateStartTime));
+            Makespan = Jobs.Select(x => x.CompleteTime).Max();
 
-            for (int i = 0; i < machines.Count; i++)
+            for (int i = 0; i < Machines.Count; i++)
             {
-                for (int j = 0; j < machines[i].assignedJobs.Count; j++)
-                {
-                    machines[i].assignedJobs[j].lateStartTime = machines[i].assignedJobs[j].startTime - machines[i].assignedJobs[j].readyTime;
-                    sumLateStart += machines[i].assignedJobs[j].lateStartTime;
-
-                    //Cost calculation
-
-                    travelCost += machines[i].assignedJobs[j].travelCost;
-                    handlingCost += machines[i].loadingUnitCost * machines[i].assignedJobs[j].quantity;
-
-                    if (machines[i].assignedJobs[j].isLateComplete())
-                    {
-                        dndCost += machines[i].assignedJobs[j].demurrage * machines[i].assignedJobs[j].dndTime;
-                    }
-                    else
-                    {
-                        dndCost += machines[i].assignedJobs[j].despatch * machines[i].assignedJobs[j].dndTime;
-                    }
-                }
+                Machines[i].TravelCost = Machines[i].AssignedJobs.Sum(x => x.TravelCost);
+                Machines[i].HandlingCost = Machines[i].AssignedJobs.Sum(x => x.HandlingCost);
+                Machines[i].RentalCost = Machines[i].AssignedJobs.Sum(x => x.RentalCost);
+                Machines[i].DndCost = Machines[i].AssignedJobs.Sum(x => x.DndCost);
+                Machines[i].TotalCost = Machines[i].AssignedJobs.Sum(x => x.TotalCost);
             }
 
             GetEventSchedule();
-
-            totalCost = travelCost + handlingCost + dndCost;
-            makespan = jobs.Select(x => x.completeTime).Max();
         }
 
         public bool IsOverallFeasible()
         {
             bool isFeasible = false;
 
-            for (int i = 0; i < machines.Count; i++)
+            for (int i = 0; i < Machines.Count; i++)
             {
-                if (Data.IsAllMachinesUtilized && machines.Count(mc => !mc.isThirdParty) <= jobs.Count && !machines[i].isThirdParty && machines[i].assignedJobs.Count == 0)
+                if (Settings.IsAllMachinesUtilized && Machines.Count(mc => !mc.IsThirdParty) <= Jobs.Count && !Machines[i].IsThirdParty && Machines[i].AssignedJobs.Count == 0)
                 {
                     return false;
                 }
 
-                if (machines.Count >= jobs.Count && machines[i].isCompulsary && machines[i].assignedJobs.Count == 0)
+                if (Machines.Count >= Jobs.Count && Machines[i].IsCompulsary && Machines[i].AssignedJobs.Count == 0)
                 {
                     return false;
                 }
 
-                for (int j = 0; j < machines[i].assignedJobs.Count; j++)
+                for (int j = 0; j < Machines[i].AssignedJobs.Count; j++)
                 {
-                    if (IsFeasible(machines[i], machines[i].assignedJobs[j]))
+                    if (IsFeasible(Machines[i], Machines[i].AssignedJobs[j]))
                     {
                         isFeasible = true;
                     }
@@ -351,13 +400,13 @@ namespace GeneticAlgorithm
 
         public bool IsFeasible(Machine machine, Job job)
         {
-            Data.DedicationType dedicationType = (Data.DedicationType)Data.DedicationCase;
+            Settings.DedicationType dedicationType = (Settings.DedicationType)Settings.DedicationCase;
 
             if (IsGearFeasible(machine, job) && IsUnloadingFeasible(machine, job) && IsBargeFeasible(machine, job) && IsOGVFeasible(machine, job))
             {
                 switch (dedicationType)
                 {
-                    case Data.DedicationType.Flexible:
+                    case Settings.DedicationType.Flexible:
                         if (IsFlexDedicationFeasible(machine, job))
                         {
                             return true;
@@ -366,7 +415,7 @@ namespace GeneticAlgorithm
                         {
                             return false;
                         }
-                    case Data.DedicationType.Strict:
+                    case Settings.DedicationType.Strict:
                         if (IsStrictDedicationFeasible(machine, job))
                         {
                             return true;
@@ -388,9 +437,9 @@ namespace GeneticAlgorithm
 
         public bool IsGearFeasible(Machine machine, Job job)
         {
-            if (job.isGeared)
+            if (job.IsGeared)
             {
-                if (machine.isGearAccepting)
+                if (machine.IsGearAccepting)
                 {
                     return true;
                 }
@@ -407,13 +456,13 @@ namespace GeneticAlgorithm
 
         public bool IsFlexDedicationFeasible(Machine machine, Job job)
         {
-            if (job.isDedicated)
+            if (job.IsDedicated)
             {
-                if (!machine.isDedicated)
+                if (!machine.IsDedicated)
                 {
                     return false;
                 }
-                else if (machine.dedicatedCustomer != job.shipper)
+                else if (machine.DedicatedCustomer != job.Shipper)
                 {
                     return false;
                 }
@@ -431,9 +480,9 @@ namespace GeneticAlgorithm
 
         public bool IsStrictDedicationFeasible(Machine machine, Job job)
         {
-            if (job.isDedicated)
+            if (job.IsDedicated)
             {
-                if (machine.dedicatedCustomer == job.shipper)
+                if (machine.DedicatedCustomer == job.Shipper)
                 {
                     return true;
                 }
@@ -443,9 +492,9 @@ namespace GeneticAlgorithm
                 }
             }
 
-            if (machine.isDedicated)
+            if (machine.IsDedicated)
             {
-                if (machine.dedicatedCustomer == job.shipper)
+                if (machine.DedicatedCustomer == job.Shipper)
                 {
                     return true;
                 }
@@ -460,9 +509,9 @@ namespace GeneticAlgorithm
 
         public bool IsUnloadingFeasible(Machine machine, Job job)
         {
-            if (job.isUnloading)
+            if (job.IsUnloading)
             {
-                if (machine.index == job.machineIdUnload)
+                if (machine.Index == job.MachineIdUnload)
                 {
                     return true;
                 }
@@ -479,9 +528,9 @@ namespace GeneticAlgorithm
 
         public bool IsBargeFeasible(Machine machine, Job job)
         {
-            if (job.isBarge)
+            if (job.IsBarge)
             {
-                if (machine.index == job.machineIdBarge)
+                if (machine.Index == job.MachineIdBarge)
                 {
                     return true;
                 }
@@ -502,27 +551,27 @@ namespace GeneticAlgorithm
             double procTime;
             double completeTime;
 
-            startTime = Math.Max(machine.latestReadyTime, job.readyTime);
+            startTime = Math.Max(machine.LatestReadyTime, job.ReadyTime);
 
             // Calculate time needed to process Job (quantity * time needed per unit quanitit)
-            procTime = job.quantity * machine.procRate;
+            procTime = job.Quantity * machine.ProcRate;
 
             completeTime = startTime + procTime;
 
             // Downtimes consideration
-            foreach (Stoppage stoppage in machine.stoppages)
+            foreach (Stoppage stoppage in machine.Stoppages)
             {
 
-                if (startTime <= stoppage.start)
+                if (startTime <= stoppage.StartTime)
                 {
-                    if (completeTime >= stoppage.start)
+                    if (completeTime >= stoppage.StartTime)
                     {
-                        procTime = procTime + stoppage.end - stoppage.start;
+                        procTime = procTime + stoppage.EndTime - stoppage.StartTime;
                     }
                 }
-                else if (startTime >= stoppage.start && startTime <= stoppage.end)
+                else if (startTime >= stoppage.StartTime && startTime <= stoppage.EndTime)
                 {
-                    startTime = stoppage.end;
+                    startTime = stoppage.EndTime;
                 }
             }
 
@@ -536,15 +585,15 @@ namespace GeneticAlgorithm
             //Machine targetMachine = new Machine();
             //Job lastJob = new Job();
 
-            if (job.ogv.assignedMachine.index == -1 || job.ogv.assignedMachine.index == machine.index)
+            if (job.Ogv.AssignedMachine.Index == -1 || job.Ogv.AssignedMachine.Index == machine.Index)
             {
                 return true;
             }
             else
             {
-                Job prevJob = job.ogv.assignedMachine.assignedJobs.FindLast(x => x.ogvId == job.ogvId);
+                Job prevJob = job.Ogv.AssignedMachine.AssignedJobs.FindLast(x => x.OgvId == job.OgvId);
 
-                if (GetJobStartCompleteTime(machine, job).Item1 - prevJob.completeTime > Data.InterrupedSetUpTime)
+                if (GetJobStartCompleteTime(machine, job).Item1 - prevJob.CompleteTime > Settings.InterrupedSetUpTime)
                 {
                     return true;
                 }

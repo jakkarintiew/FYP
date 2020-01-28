@@ -72,19 +72,28 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller.cs" />
-    <Compile Include="Data.cs" />
-    <Compile Include="Event.cs" />
+    <Compile Include="Operators\Crossovers\CrossoverBase.cs" />
+    <Compile Include="Operators\Crossovers\SinglePointCrossover.cs" />
+    <Compile Include="Operators\Crossovers\PositionBasedCrossover.cs" />
+    <Compile Include="Operators\Mutations\MutationBase.cs" />
+    <Compile Include="Operators\Mutations\InsertionMutation.cs" />
+    <Compile Include="Operators\Mutations\RandomMutation.cs" />
+    <Compile Include="Operators\ParentSelection\SelectionBase.cs" />
+    <Compile Include="Operators\ParentSelection\EliteSelection.cs" />
+    <Compile Include="Operators\ParentSelection\TournamentSelection.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="Entities\Event.cs" />
     <Compile Include="GA.cs" />
     <Compile Include="Chromosome.cs" />
-    <Compile Include="Job.cs" />
-    <Compile Include="Machine.cs" />
-    <Compile Include="OGV.cs" />
+    <Compile Include="Entities\Job.cs" />
+    <Compile Include="Entities\Machine.cs" />
+    <Compile Include="Entities\OGV.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scheduler.cs" />
-    <Compile Include="Printer.cs" />
-    <Compile Include="Stoppage.cs" />
-    <Compile Include="Writer.cs" />
+    <Compile Include="Helpers\Printer.cs" />
+    <Compile Include="Entities\Stoppage.cs" />
+    <Compile Include="Helpers\Writer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
