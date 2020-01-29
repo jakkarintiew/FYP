@@ -15,7 +15,7 @@ namespace GeneticAlgorithm.Operators.ParentSelection
         public override Chromosome PerformSelection(List<Chromosome> population)
         {
             // Tournament selection
-            int numCompetitors = 5; // Binary tournament
+            int numCompetitors = 2; // Binary tournament
             Chromosome randSelection;
             Chromosome best = null;
 

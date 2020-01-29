@@ -17,7 +17,6 @@ namespace GeneticAlgorithm.Operators.Mutations
         {
         }
 
-
         // Methods        
         public abstract Chromosome PerformMutation(Chromosome chromosome);
 

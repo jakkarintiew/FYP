@@ -52,6 +52,43 @@ namespace GeneticAlgorithm
 
         public void UpdateSchedule(Machine machine, Job job)
         {
+            // Travelling
+            machine.TravelTime = CalculateDistance(job.Latitude, job.Latitude, machine.Latitude, machine.Longitude) / machine.Speed;
+            machine.Latitude = job.Latitude;
+            machine.Longitude = job.Longitude;
+            machine.CumulatedTravelTime += machine.TravelTime;
+            machine.CumulatedDistance += CalculateDistance(job.Latitude, job.Latitude, machine.Latitude, machine.Longitude);
+
+            Event travel = new Event(
+                            type: "Travel",
+                            startTime: machine.LatestReadyTime,
+                            endTime: machine.LatestReadyTime + machine.TravelTime,
+                            job: new Job()
+                            );
+
+            // Downtimes consideration
+            foreach (Stoppage stoppage in machine.Stoppages)
+            {
+                if (travel.StartTime < stoppage.EndTime && stoppage.StartTime < travel.EndTime)
+                {
+                    travel.StartTime = stoppage.EndTime;
+                    travel.EndTime = travel.StartTime + machine.TravelTime;
+                }
+            }
+            machine.ScheduledEvents.Add(travel);
+            machine.LatestReadyTime = travel.EndTime;
+
+            // Anchorage
+            Event anchorage = new Event(
+                           type: "Anchorage",
+                           startTime: machine.LatestReadyTime,
+                           endTime: machine.LatestReadyTime + Settings.AnchorageTime,
+                           job: new Job()
+                           );
+
+            machine.ScheduledEvents.Add(anchorage);
+
+            machine.LatestReadyTime = anchorage.EndTime;
 
             job.StartTime = Math.Max(machine.LatestReadyTime, job.ReadyTime);
             job.ProcTime = job.Quantity * machine.ProcRate;
@@ -97,53 +134,19 @@ namespace GeneticAlgorithm
                 job.DndCost = job.Despatch * job.DndTime;
             }
 
+            //Console.WriteLine(job.DndCost);
+
             job.TotalCost = job.TravelCost + job.HandlingCost + job.RentalCost + job.DndCost;
 
-            // Update machine
-            machine.TravelTime = CalculateDistance(job.Latitude, job.Latitude, machine.Latitude, machine.Longitude) / machine.Speed;
-            machine.Latitude = job.Latitude;
-            machine.Longitude = job.Longitude;
-            machine.LatestReadyTime = job.CompleteTime + Settings.CastingOffTime + machine.TravelTime + Settings.AnchorageTime;
-            machine.CumulatedTravelTime += machine.TravelTime;
-            machine.CumulatedDistance += CalculateDistance(job.Latitude, job.Latitude, machine.Latitude, machine.Longitude);
-
-            machine.ScheduledEvents.Add(new Event(
+            // Casting Off
+            Event castingOff = new Event(
                             type: "CastingOff",
                             startTime: job.CompleteTime,
                             endTime: job.CompleteTime + Settings.CastingOffTime,
                             job: new Job()
-                            ));
-
-            machine.ScheduledEvents.Add(new Event(
-                            type: "Travel",
-                            startTime: job.CompleteTime + Settings.CastingOffTime,
-                            endTime: job.CompleteTime + Settings.CastingOffTime + machine.TravelTime,
-                            job: new Job()
-                            ));
-
-            machine.ScheduledEvents.Add(new Event(
-                            type: "Anchorage",
-                            startTime: job.CompleteTime + Settings.CastingOffTime + machine.TravelTime,
-                            endTime: machine.LatestReadyTime,
-                            job: new Job()
-                            ));
-
-            //// Downtimes consideration
-            //foreach (Stoppage stoppage in machine.Stoppages)
-            //{
-            //    foreach (Event evt in machine.ScheduledEvents)
-            //    {
-            //        if (evt.Type == "Travel")
-            //        {
-            //            if (evt.StartTime < stoppage.StartTime && stoppage.StartTime < evt.EndTime)
-            //            {
-            //                double delay = stoppage.EndTime - evt.StartTime;
-            //                evt.StartTime = stoppage.EndTime;
-            //                evt.EndTime += delay;
-            //            }
-            //        }
-            //    }
-            //}
+                            );
+            machine.ScheduledEvents.Add(castingOff);
+            machine.LatestReadyTime = castingOff.EndTime;
         }
 
         public double CalculateDistance(double x1, double y1, double x2, double y2) => Math.Sqrt(((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));

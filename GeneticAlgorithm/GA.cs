@@ -80,7 +80,6 @@ namespace GeneticAlgorithm
                     Chromosome parent2 = Selection.PerformSelection(Population);
                     Chromosome child = Crossover.PerformCrossover (parent1, parent2);
                     child = Mutation.PerformMutation(child);
-
                     newPopulation.Add(child);
 
                 }

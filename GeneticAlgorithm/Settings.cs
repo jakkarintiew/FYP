@@ -59,16 +59,16 @@ namespace GeneticAlgorithm
         }
 
         // GA hyper-parameters
-        public static int PopulationSize = 150;
+        public static int PopulationSize = 200;
         public static bool EnableCrossoverNewDNA = true;
         public static int NumNewDNA = (int)Math.Round(0.2 * PopulationSize);
         public static double MutationRate = 0.05;
         public static int Elitism = 5;
         public static CrossoverBase CrossoverOperator = new SinglePointCrossover();
-        public static MutationBase MutationOperator = new InsertionMutation();
+        public static MutationBase MutationOperator = new SwapMutation();
         public static SelectionBase SelectionOperator = new TournamentSelection();
         public enum ObjetiveFunction { TotalCostNoPriority, TotalCostWithPriority, DemurrageDespatchCost, SumLateStart, Makespan }
-        public static int ObjectiveCase = 4;
+        public static int ObjectiveCase = 0;
         public enum DedicationType { Flexible, Strict }
         public static int DedicationCase = 0;
         public static double PriorityGapTime = 10800.00;
@@ -81,7 +81,7 @@ namespace GeneticAlgorithm
         //public static double ThirdMachinePosition = 0.00;
         public static double ThirdMachineLatitude = 0.00;
         public static double ThirdMachineLongitude = 0.00;
-        public static double ThirdMachineSpeed = 0.50;
+        public static double ThirdMachineSpeed = 0.20;
         public static double ThirdMachineReadyTime = 0.00;
         public static double ThirdMachineProcRate = 12.00;
         public static double ThirdMachineRentalCost = 1.00;

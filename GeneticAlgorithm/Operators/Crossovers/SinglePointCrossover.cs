@@ -33,14 +33,20 @@ namespace GeneticAlgorithm.Operators.Crossovers
                     // create new child Chromosome with same gene array size as parent; improve performance by setting shouldInitGenes: false
                     Chromosome firstChild = new Chromosome(firstParent.Genes.Count, shouldInitGenes: false);
                     Chromosome secondChild = new Chromosome(firstParent.Genes.Count, shouldInitGenes: false);
-
                     counter++;
 
                     if (counter > 50)
                     {
                         //Console.WriteLine(counter);
-                        child.GetRandomGenes();
-                        child.CalculateFitness();
+                        //if (Random.NextDouble() > 0.5)
+                        if (firstParent.Fitness > secondParent.Fitness)
+                        {
+                            child = secondParent;
+                        }
+                        else
+                        {
+                            child = firstParent;
+                        }
                         break;
                     }
 
@@ -93,7 +99,6 @@ namespace GeneticAlgorithm.Operators.Crossovers
 
                         //Console.WriteLine("firstChild machine i:    {0}", string.Join(",", firstChild.Schedule.Machines[i].AssignedJobIds));
                         //Console.WriteLine("secondChild machine i:   {0}\n", string.Join(",", secondChild.Schedule.Machines[i].AssignedJobIds));
-
                     }
 
 
@@ -108,8 +113,9 @@ namespace GeneticAlgorithm.Operators.Crossovers
                     {
                         child = firstChild;
                     }
+                   
+                    isFeasible = child.Fitness < (firstParent.Fitness + secondParent.Fitness)/2;
 
-                    isFeasible = child.Schedule.IsOverallFeasible();
 
                     //if (isFeasible)
                     //{
@@ -119,17 +125,11 @@ namespace GeneticAlgorithm.Operators.Crossovers
                     //    Console.WriteLine("secondChild:   {0}", string.Join(",", secondChild.GetReadableGenes()));
                     //    Console.WriteLine("if child Feasible {0}\n", isFeasible);
                     //}
-
-                    //isFeasible = true;
-
                 }
 
                 //Console.WriteLine(counter);
 
             }
-
-
-
             return child;
         }
 
