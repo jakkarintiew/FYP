@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GeneticAlgorithm.Operators.Mutations
+namespace GeneticAlgorithm
 {
     class SwapMutation : MutationBase
     {
@@ -12,12 +12,15 @@ namespace GeneticAlgorithm.Operators.Mutations
         {
             MutationName = "SwapMutation";
         }
-
         public override Chromosome PerformMutation(Chromosome chromosome)
         {
-            Chromosome mutated = new Chromosome(chromosome.Genes.Count, shouldInitGenes: false);
+            Chromosome mutated = new Chromosome(shouldInitGenes: false);
             mutated.Genes = new List<int>(chromosome.Genes);
             List<int> listJobs = mutated.Genes.Where(x => x < 100).ToList();
+
+
+
+
 
             if (Random.NextDouble() < Settings.MutationRate)
             {

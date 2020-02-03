@@ -121,22 +121,22 @@ namespace GeneticAlgorithm
                 {
                     if (schedule.Machines[i].ScheduledEvents[k].Type != "Job")
                     {
-                        Console.WriteLine(
-                        "{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10} {12, -10}",
-                        schedule.Machines[i].ScheduledEvents[k].Index,
-                        schedule.Machines[i].ScheduledEvents[k].Type,
-                        " ",
-                        string.Format("{0:.##}", schedule.Machines[i].ScheduledEvents[k].StartTime),
-                        string.Format("{0:.##}", schedule.Machines[i].ScheduledEvents[k].EndTime),
-                        " ",
-                        " ",
-                        " ",
-                        " ",
-                        " ",
-                        " ",
-                        " ",
-                        " "
-                        );
+                        //Console.WriteLine(
+                        //"{0, -10} {1, -10} {2, -15} {3, -15} {4, -15} {5, -10} {6, -10} {7, -10} {8, -10} {9, -10} {10, -10} {11, -10} {12, -10}",
+                        //schedule.Machines[i].ScheduledEvents[k].Index,
+                        //schedule.Machines[i].ScheduledEvents[k].Type,
+                        //" ",
+                        //string.Format("{0:.##}", schedule.Machines[i].ScheduledEvents[k].StartTime),
+                        //string.Format("{0:.##}", schedule.Machines[i].ScheduledEvents[k].EndTime),
+                        //" ",
+                        //" ",
+                        //" ",
+                        //" ",
+                        //" ",
+                        //" ",
+                        //" ",
+                        //" "
+                        //);
                     }
                     else
                     {

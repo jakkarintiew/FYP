@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.Random;
 
-namespace GeneticAlgorithm.Operators.Mutations
+namespace GeneticAlgorithm
 {
-    public abstract class MutationBase
+    public abstract class MutationBase : IMutation
     {
         // Properties
         public Mcg59 Random = new Mcg59(RandomSeed.Robust());

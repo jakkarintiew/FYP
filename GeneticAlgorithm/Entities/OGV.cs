@@ -10,11 +10,12 @@ namespace GeneticAlgorithm
     {
         public int Index { get; set; }
         public string Shipper { get; set; }
+        public List<Job> Jobs { get; set; }
         public Machine AssignedMachine { get; set; }
-
         public OGV()
         {
             AssignedMachine = new Machine();
+            Jobs = new List<Job>();
         }
 
         public object Clone()
@@ -23,6 +24,7 @@ namespace GeneticAlgorithm
             {
                 Index = this.Index,
                 Shipper = this.Shipper,
+                Jobs = this.Jobs,
                 AssignedMachine = this.AssignedMachine
             };
         }

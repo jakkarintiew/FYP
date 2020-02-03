@@ -46,6 +46,7 @@ namespace GeneticAlgorithm
         public Job()
         {
             Index = -1;
+            AssignedMachine = null;
         }
         public void Init(List<OGV> ogvs)
         {
@@ -54,6 +55,10 @@ namespace GeneticAlgorithm
             {
                 if (_ogv.Index == OgvId)
                 {
+                    if (_ogv.Jobs.Where(x => x.Index == Index).ToList().Count == 0)
+                    {
+                        _ogv.Jobs.Add(this);
+                    }
                     Ogv = _ogv; 
                 }
             }

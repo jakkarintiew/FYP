@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.Random;
-using System.Text;
-
-
 
 namespace GeneticAlgorithm
 {
@@ -20,20 +17,16 @@ namespace GeneticAlgorithm
 
 
         // Construtor
-        public Chromosome(
-            int size,
-            bool shouldInitGenes = true
-            )
+        public Chromosome(bool shouldInitGenes = true)
         {
             // Create the Gene array with size
             Genes = new List<int>(Enumerable.Repeat(-1, Settings.NumAllMachines * Settings.NumJobs));
             ReadableGenes = "";
-            Schedule = new Scheduler(Genes);
+            Schedule = new Scheduler();
 
             if (shouldInitGenes)
             {
                 Genes = GetRandomGenes();
-                //Console.WriteLine("chrmsm: [ {0} ]", string.Join(",  ", genes));
                 CalculateFitness();
             }
         }
@@ -41,7 +34,7 @@ namespace GeneticAlgorithm
         private int ProbabilityMachineSelection(Vector<double> randSelectionColumn)
         {
             var machine_index = Enumerable.Range(0, Settings.NumAllMachines).ToList();
-            Vector<double> transform_column = randSelectionColumn.Sum() / (randSelectionColumn + 0.1);
+            Vector<double> transform_column = randSelectionColumn.Sum() / (randSelectionColumn + 0.01);
             Vector<double> prob_vector = transform_column / transform_column.Sum();
             Dictionary<int, double> dict = machine_index.Zip(prob_vector, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
 
@@ -54,7 +47,7 @@ namespace GeneticAlgorithm
                 if (randDouble < cumulative)
                 {
                     int selectedElement = dict.Keys.ElementAt(i);
-                    //Console.WriteLine("randSelectionColumn: {0}", string.Join(",", randSelectionColumn));
+                    //Console.WriteLine("randSelectionColumn: {0:0.00}", string.Join(",", randSelectionColumn));
                     //Console.WriteLine("transform_column: {0}", string.Join(",", transform_column));
                     //Console.WriteLine("prob_vector: {0}", string.Join(",", prob_vector));
                     //Console.WriteLine("randDouble: {0}", randDouble);
@@ -69,89 +62,79 @@ namespace GeneticAlgorithm
         public List<int> GetRandomGenes()
         {
 
-            Restart:
-
-            Vector<double> randSelectionColumn = Vector<double>.Build.Dense(Settings.NumAllMachines);
-            bool isFeasible = false;
-            int counter = 0;
+        Restart:
+            Schedule = new Scheduler();
+            Schedule.InitObjects();
+            Vector<double> randSelectionColumn = Vector<double>.Build.Dense(Schedule.Machines.Count);
+            bool isFeasible;
+            int counter;
 
             // If IsAllMachinesUtilized, randomly assigned one job to each compulsary machine
             if (Settings.IsAllMachinesUtilized)
             {
-                foreach (Machine machine in Schedule.Machines)
+                foreach (Machine machine in Schedule.Machines.Where(mc => !mc.IsThirdParty || mc.IsCompulsary))
                 {
-                    if (!machine.IsThirdParty || machine.IsCompulsary)
+                    int randJobIndex = Random.Next(Settings.NumJobs);
+                    while (Schedule.Jobs[randJobIndex].AssignedMachine != null)
                     {
-
-                        int randJobIndex = Random.Next(Settings.NumJobs);
-                        if (Schedule.Jobs[randJobIndex].AssignedMachine == null)
-                        {
-                            isFeasible = false;
-                            counter = 0;
-                            while (!isFeasible)
-                            {
-                                if (Schedule.IsFeasible(machine, Schedule.Jobs[randJobIndex]))
-                                {
-                                    Schedule.Assign(machine, Schedule.Jobs[randJobIndex]);
-                                    Schedule.ScheduleToGenes();
-                                    isFeasible = true;
-                                }
-                                else
-                                {
-                                    counter++;
-                                    if (counter > 50)
-                                    {
-                                        goto Restart;
-                                    }
-                                }
-                            }
-                        }
+                        randJobIndex = Random.Next(Settings.NumJobs);
                     }
-                    //Console.WriteLine(counter);
-                    //Console.WriteLine(isFeasible);
-                }
-            }
 
-            for (int j = 0; j < Schedule.Jobs.Count; j++)
-            {
-                if (Schedule.Jobs[j].AssignedMachine == null)
-                {
                     isFeasible = false;
                     counter = 0;
 
+                    while (!isFeasible)
+                    {
+                        if (Schedule.IsFeasible(machine, Schedule.Jobs[randJobIndex]))
+                        {
+                            Schedule.Assign(machine, Schedule.Jobs[randJobIndex]);
+                            isFeasible = true;
+                        }
+                        else
+                        {
+                            counter++;
+                            if (counter > 20)
+                            {
+                                //Console.WriteLine(counter);
+                                goto Restart;
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (Job job in Schedule.Jobs)
+            {
+                if (job.AssignedMachine == null)
+                {
+                    isFeasible = false;
+                    int selectedMachine;
+
                     for (int i = 0; i < Schedule.Machines.Count; i++)
                     {
-                        randSelectionColumn[i] = Schedule.CalculateIncrementalFitness(Schedule.Machines[i], Schedule.Jobs[j]);
+                        randSelectionColumn[i] = Schedule.CalculateIncrementalFitness(Schedule.Machines[i], job);
                     }
 
                     while (!isFeasible)
                     {
-
-                        int selectedMachine = ProbabilityMachineSelection(randSelectionColumn);
-
-                        if (!Schedule.IsFeasible(Schedule.Machines[selectedMachine], Schedule.Jobs[j]))
+                        selectedMachine = ProbabilityMachineSelection(randSelectionColumn);
+                        if (Schedule.IsFeasible(Schedule.Machines[selectedMachine], job))
                         {
-                            counter++;
-                            randSelectionColumn[selectedMachine] = float.MaxValue;
+                            Schedule.Assign(Schedule.Machines[selectedMachine], job);
+                            isFeasible = true;
                         }
                         else
                         {
-                            Schedule.Assign(Schedule.Machines[selectedMachine], Schedule.Jobs[j]);
-                            isFeasible = true;
+                            randSelectionColumn[selectedMachine] = float.MaxValue;
                         }
                     }
-
-                    //Console.WriteLine(counter);
-                    //Console.WriteLine(isFeasible);
                 }
             }
 
             Schedule.ScheduleToGenes();
-            //Console.WriteLine(schedule.IsOverallFeasible());
-            //Console.WriteLine("scheduleToGenes: [ {0} ]", string.Join(",", schedule.genes));
-            Genes = Schedule.Genes;
-            MakeProperGenes();
-            return Genes;
+            //Console.WriteLine("Schedule.IsOverallFeasible:  {0}", Schedule.IsOverallFeasible());
+            //Console.WriteLine("Genes:  {0}", GetReadableGenes());
+            return Schedule.Genes;
         }
 
         public void MakeProperGenes()
@@ -186,8 +169,8 @@ namespace GeneticAlgorithm
         public double CalculateFitness()
         {
             MakeProperGenes();
-            Schedule = new Scheduler(Genes);
-            //Schedule.Genes = Genes;
+            Schedule = new Scheduler();
+            Schedule.Genes = Genes;
             Schedule.GenesToSchedule();
             Schedule.GetOverallSchedule();
 
@@ -222,7 +205,7 @@ namespace GeneticAlgorithm
 
             for (int i = 0; i < Settings.NumAllMachines; i++)
             {
-                ReadableGenes += "|";
+                //ReadableGenes += "|";
                 for (int j = 0; j  < Settings.NumJobs; j ++)
                 {
                     if (Genes[i * Settings.NumJobs + j] < 100 && Genes[i * Settings.NumJobs + j] >= 0)
@@ -232,7 +215,9 @@ namespace GeneticAlgorithm
                     }
                     else
                     {
-                        ReadableGenes += ".";
+                        //ReadableGenes += Genes[i * Settings.NumJobs + j].ToString();
+                        //ReadableGenes += " ";
+                        ReadableGenes += ". ";
                     }
                 }
             }

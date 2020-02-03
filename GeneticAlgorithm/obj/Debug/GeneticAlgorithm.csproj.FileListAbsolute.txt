@@ -15,7 +15,6 @@ C:\Users\jakka\Projects\FYP\GeneticAlgorithm\GeneticAlgorithm\bin\Debug\GeneticA
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\GeneticAlgorithm.exe.config
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\GeneticAlgorithm.exe
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\bin\Debug\GeneticAlgorithm.pdb
-C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csprojAssemblyReference.cache
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.CoreCompileInputs.cache
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.exe
 C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.pdb
@@ -48,3 +47,4 @@ C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\obj\Debug\GeneticAlgorit
 C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.CopyComplete
 C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.exe
 C:\Users\jakka\Projects\FYP\Code excel\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.pdb
+C:\Users\jakka\Projects\FYP\Code\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csprojAssemblyReference.cache

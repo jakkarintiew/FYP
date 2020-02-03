@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GeneticAlgorithm.Operators.Crossovers
+namespace GeneticAlgorithm
 {
 
     class SinglePointCrossover : CrossoverBase
@@ -18,7 +18,7 @@ namespace GeneticAlgorithm.Operators.Crossovers
         public override Chromosome PerformCrossover(Chromosome firstParent, Chromosome secondParent)
         {
 
-            Chromosome child = new Chromosome(firstParent.Genes.Count, shouldInitGenes: false);
+            Chromosome child = new Chromosome(shouldInitGenes: false);
 
             if (firstParent.Genes == secondParent.Genes)
             {
@@ -31,8 +31,8 @@ namespace GeneticAlgorithm.Operators.Crossovers
                 while (!isFeasible)
                 {
                     // create new child Chromosome with same gene array size as parent; improve performance by setting shouldInitGenes: false
-                    Chromosome firstChild = new Chromosome(firstParent.Genes.Count, shouldInitGenes: false);
-                    Chromosome secondChild = new Chromosome(firstParent.Genes.Count, shouldInitGenes: false);
+                    Chromosome firstChild = new Chromosome(shouldInitGenes: false);
+                    Chromosome secondChild = new Chromosome(shouldInitGenes: false);
                     counter++;
 
                     if (counter > 50)
@@ -114,7 +114,7 @@ namespace GeneticAlgorithm.Operators.Crossovers
                         child = firstChild;
                     }
                    
-                    isFeasible = child.Fitness < (firstParent.Fitness + secondParent.Fitness)/2;
+                    isFeasible = child.Fitness <= (firstParent.Fitness + secondParent.Fitness)/2;
 
 
                     //if (isFeasible)

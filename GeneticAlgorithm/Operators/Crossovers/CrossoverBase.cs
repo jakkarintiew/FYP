@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.Random;
+using GeneticAlgorithm;
 
-namespace GeneticAlgorithm.Operators.Crossovers
+namespace GeneticAlgorithm
 {
-    public abstract class CrossoverBase
+    public abstract class CrossoverBase : ICrossover
     {
         // Properties
         public Mcg59 Random = new Mcg59(RandomSeed.Robust());

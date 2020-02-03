@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Ganss.Excel;
-using MathNet.Numerics.Random;
-using GeneticAlgorithm.Operators.Crossovers;
-using GeneticAlgorithm.Operators.Mutations;
-using GeneticAlgorithm.Operators.ParentSelection;
+
 
 namespace GeneticAlgorithm
 {
@@ -64,9 +61,9 @@ namespace GeneticAlgorithm
         public static int NumNewDNA = (int)Math.Round(0.2 * PopulationSize);
         public static double MutationRate = 0.05;
         public static int Elitism = 5;
-        public static CrossoverBase CrossoverOperator = new SinglePointCrossover();
-        public static MutationBase MutationOperator = new SwapMutation();
-        public static SelectionBase SelectionOperator = new TournamentSelection();
+        public static ICrossover CrossoverOperator = new PositionBasedCrossover();
+        public static IMutation MutationOperator = new InsertionMutation();
+        public static ISelection SelectionOperator = new TournamentSelection();
         public enum ObjetiveFunction { TotalCostNoPriority, TotalCostWithPriority, DemurrageDespatchCost, SumLateStart, Makespan }
         public static int ObjectiveCase = 0;
         public enum DedicationType { Flexible, Strict }

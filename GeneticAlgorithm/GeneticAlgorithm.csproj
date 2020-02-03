@@ -73,12 +73,15 @@
   <ItemGroup>
     <Compile Include="Controller.cs" />
     <Compile Include="Operators\Crossovers\CrossoverBase.cs" />
+    <Compile Include="Operators\Crossovers\ICrossover.cs" />
     <Compile Include="Operators\Crossovers\SinglePointCrossover.cs" />
     <Compile Include="Operators\Crossovers\PositionBasedCrossover.cs" />
+    <Compile Include="Operators\Mutations\IMutation.cs" />
     <Compile Include="Operators\Mutations\SwapMutation.cs" />
     <Compile Include="Operators\Mutations\MutationBase.cs" />
     <Compile Include="Operators\Mutations\InsertionMutation.cs" />
     <Compile Include="Operators\Mutations\RandomMutation.cs" />
+    <Compile Include="Operators\ParentSelection\ISelection.cs" />
     <Compile Include="Operators\ParentSelection\SelectionBase.cs" />
     <Compile Include="Operators\ParentSelection\EliteSelection.cs" />
     <Compile Include="Operators\ParentSelection\TournamentSelection.cs" />

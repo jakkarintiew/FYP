@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using MathNet.Numerics.Random;
-using MathNet.Numerics.LinearAlgebra;
-using GeneticAlgorithm.Operators.Crossovers;
-using GeneticAlgorithm.Operators.Mutations;
-using GeneticAlgorithm.Operators.ParentSelection;
 
 namespace GeneticAlgorithm
 {
     public class GA
     {
         public List<Chromosome> Population { get; private set; }
-        public SelectionBase Selection { get; set; }
-        public CrossoverBase Crossover { get; set; }
-        public MutationBase Mutation { get; set; }
+        public ISelection Selection { get; set; }
+        public ICrossover Crossover { get; set; }
+        public IMutation Mutation { get; set; }
         public int Generation { get; private set; }
         public double BestFitness { get; private set; }
         public List<int> BestGenes { get; private set; }
@@ -26,22 +21,21 @@ namespace GeneticAlgorithm
         private int ChromoSize;
 
         // Constructor
-        public GA(SelectionBase selection, CrossoverBase crossover, MutationBase mutation)
+        public GA(ISelection selection, ICrossover crossover, IMutation mutation)
         {
             Generation = 1;
             Elitism = Settings.Elitism;
             MutationRate = Settings.MutationRate;
             Population = new List<Chromosome>(Settings.PopulationSize);
             Random = new Mcg59(RandomSeed.Robust());
-            ChromoSize = Settings.NumAllMachines;
-            BestGenes = new List<int>(ChromoSize);
+            BestGenes = new List<int>(Settings.NumAllMachines);
             Selection = selection;
             Crossover = crossover;
             Mutation = mutation;
 
             for (int i = 0; i < Settings.PopulationSize; i++)
             {
-                Population.Add(new Chromosome(ChromoSize, shouldInitGenes: true));
+                Population.Add(new Chromosome(shouldInitGenes: true));
             }
 
         }
@@ -85,7 +79,7 @@ namespace GeneticAlgorithm
                 }
                 else if (Settings.EnableCrossoverNewDNA)
                 {
-                    newPopulation.Add(new Chromosome(ChromoSize, shouldInitGenes: true));
+                    newPopulation.Add(new Chromosome(shouldInitGenes: true));
                 }
             }
 

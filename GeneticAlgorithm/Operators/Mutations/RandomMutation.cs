@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GeneticAlgorithm.Operators.Mutations
+namespace GeneticAlgorithm
 {
     class RandomMutation : MutationBase
     {
@@ -27,7 +27,7 @@ namespace GeneticAlgorithm.Operators.Mutations
         }
 
         public override Chromosome PerformMutation(Chromosome chromosome) {
-            Chromosome mutated = new Chromosome(chromosome.Genes.Count, shouldInitGenes: false);
+            Chromosome mutated = new Chromosome(shouldInitGenes: false);
             mutated.Genes = new List<int>(chromosome.Genes);
 
             if (Random.NextDouble() < Settings.MutationRate)

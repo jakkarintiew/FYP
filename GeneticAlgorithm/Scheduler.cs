@@ -23,17 +23,19 @@ namespace GeneticAlgorithm
 
 
         // Construtor
-        public Scheduler(List<int> genes)
+        public Scheduler()
         {
             InitObjects();
-            //Genes = new List<int>(Enumerable.Repeat(-1, Settings.NumAllMachines * Settings.NumJobs));
-            Genes = genes;            
+            Genes = new List<int>(Enumerable.Repeat(-1, Settings.NumAllMachines * Settings.NumJobs));
+            //Genes = genes;            
         }
         
         public void InitObjects()
         {   
             Machines = new List<Machine>();
             Jobs = new List<Job>();
+            OGVs = new List<OGV>();
+
             Machines = Settings.Machines.Select(x => (Machine)x.Clone()).ToList();
             Jobs = Settings.Jobs.Select(x => (Job)x.Clone()).ToList();
             OGVs = Settings.OGVs.Select(x => (OGV)x.Clone()).ToList();
@@ -344,10 +346,10 @@ namespace GeneticAlgorithm
             {
                 SortByPriority();
             }
-            else
-            {
-                SortByReadyTime();
-            }
+            //else
+            //{
+            //    SortByReadyTime();
+            //}
 
             TravelCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.TravelCost));
             HandlingCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.HandlingCost));
@@ -371,23 +373,26 @@ namespace GeneticAlgorithm
 
         public bool IsOverallFeasible()
         {
-            bool isFeasible = false;
+            bool isFeasible = true;
 
-            for (int i = 0; i < Machines.Count; i++)
+            foreach (Machine machine in Machines)
             {
-                if (Settings.IsAllMachinesUtilized && Machines.Count(mc => !mc.IsThirdParty) <= Jobs.Count && !Machines[i].IsThirdParty && Machines[i].AssignedJobs.Count == 0)
+
+                if (!machine.IsThirdParty)
+                {
+                    if (Settings.IsAllMachinesUtilized && machine.AssignedJobs.Count == 0)
+                    {
+                        return false;
+                    }
+                }
+                else if (machine.IsCompulsary && machine.AssignedJobs.Count == 0)
                 {
                     return false;
                 }
 
-                if (Machines.Count >= Jobs.Count && Machines[i].IsCompulsary && Machines[i].AssignedJobs.Count == 0)
+                foreach (Job job in machine.AssignedJobs)
                 {
-                    return false;
-                }
-
-                for (int j = 0; j < Machines[i].AssignedJobs.Count; j++)
-                {
-                    if (IsFeasible(Machines[i], Machines[i].AssignedJobs[j]))
+                    if (IsFeasible(machine, job))
                     {
                         isFeasible = true;
                     }
@@ -404,6 +409,14 @@ namespace GeneticAlgorithm
         public bool IsFeasible(Machine machine, Job job)
         {
             Settings.DedicationType dedicationType = (Settings.DedicationType)Settings.DedicationCase;
+
+
+            //if (!IsGearFeasible(machine, job)) { Console.WriteLine("FAILED GEAR"); }
+            //if (!IsUnloadingFeasible(machine, job)) { Console.WriteLine("FAILED UNLOADING"); }
+            //if (!IsBargeFeasible(machine, job)) { Console.WriteLine("FAILED BARGE"); }
+            //if (!IsOGVFeasible(machine, job)) { Console.WriteLine("FAILED OGV"); }
+            //if (!IsFlexDedicationFeasible(machine, job)) { Console.WriteLine("FAILED DEDICATION"); }
+
 
             if (IsGearFeasible(machine, job) && IsUnloadingFeasible(machine, job) && IsBargeFeasible(machine, job) && IsOGVFeasible(machine, job))
             {
@@ -585,8 +598,6 @@ namespace GeneticAlgorithm
 
         public bool IsOGVFeasible(Machine machine, Job job)
         {
-            //Machine targetMachine = new Machine();
-            //Job lastJob = new Job();
 
             if (job.Ogv.AssignedMachine.Index == -1 || job.Ogv.AssignedMachine.Index == machine.Index)
             {
@@ -594,16 +605,42 @@ namespace GeneticAlgorithm
             }
             else
             {
-                Job prevJob = job.Ogv.AssignedMachine.AssignedJobs.FindLast(x => x.OgvId == job.OgvId);
+                Job prevJob = new Job();
+                Job nextJob = new Job();
+                job.Ogv.Jobs = job.Ogv.Jobs.OrderBy(o => o.CompleteTime).ToList();
+                prevJob = job.Ogv.Jobs.Where(o => o.CompleteTime < job.CompleteTime).ToList().Count != 0 ? job.Ogv.Jobs.Where(o => o.CompleteTime < job.CompleteTime).Last() : null;
+                nextJob = job.Ogv.Jobs.Where(o => o.CompleteTime > job.CompleteTime).ToList().Count != 0 ? job.Ogv.Jobs.Where(o => o.CompleteTime > job.CompleteTime).First() : null;
 
-                if (GetJobStartCompleteTime(machine, job).Item1 - prevJob.CompleteTime > Settings.InterrupedSetUpTime)
+                if (prevJob != null)
                 {
-                    return true;
+                    //Console.WriteLine("machine.Index = {0}, prevJob.Index = {1} job.Index = {2}", machine.Index, prevJob.Index, job.Index);
+                    //Console.WriteLine("prevJob.CompleteTime = {0}, job.StartTime = {1}", prevJob.CompleteTime, GetJobStartCompleteTime(machine, job).Item1);
+
+                    if (GetJobStartCompleteTime(machine, job).Item1 - prevJob.CompleteTime > Settings.InterrupedSetUpTime)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
-                else
+
+                if (nextJob != null)
                 {
-                    return false;
+                    //Console.WriteLine("machine.Index = {0}, nextJob.Index = {1} job.Index = {2}", machine.Index, nextJob.Index, job.Index);
+                    //Console.WriteLine("job.CompleteTime = {0}, nextJob.StartTime = {1}", GetJobStartCompleteTime(machine, job).Item2, nextJob.StartTime);
+                    if (nextJob.StartTime - GetJobStartCompleteTime(machine, job).Item2 > Settings.InterrupedSetUpTime)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
+
+                return false;
             }
         }
 
