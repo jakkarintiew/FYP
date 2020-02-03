@@ -205,7 +205,7 @@ namespace GeneticAlgorithm
 
             for (int i = 0; i < Settings.NumAllMachines; i++)
             {
-                //ReadableGenes += "|";
+                ReadableGenes += "|";
                 for (int j = 0; j  < Settings.NumJobs; j ++)
                 {
                     if (Genes[i * Settings.NumJobs + j] < 100 && Genes[i * Settings.NumJobs + j] >= 0)

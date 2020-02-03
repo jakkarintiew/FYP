@@ -284,19 +284,22 @@ namespace GeneticAlgorithm
         {
             for (int i = 0; i < Machines.Count; i++)
             {
-                for (int j = 0; j < Machines[i].AssignedJobs.Count; j++)
+                if (Machines[i].AssignedJobs.Count > 1)
                 {
-                    if (j > 0 && Math.Abs(Machines[i].AssignedJobs[j].ReadyTime - Machines[i].AssignedJobs[j - 1].ReadyTime) < Settings.PriorityGapTime)
+                    for (int j = 1; j < Machines[i].AssignedJobs.Count; j++)
                     {
-                        if (Machines[i].AssignedJobs[j].Priority > Machines[i].AssignedJobs[j - 1].Priority)
+                        if (Math.Abs(Machines[i].AssignedJobs[j].ReadyTime - Machines[i].AssignedJobs[j - 1].ReadyTime) < Settings.PriorityGapTime)
                         {
-                            if (!Machines[i].AssignedJobs[j].IsOutOfLaycan && Machines[i].AssignedJobs[j].Demurrage != 0)
+                            if (Machines[i].AssignedJobs[j].Priority > Machines[i].AssignedJobs[j - 1].Priority)
                             {
-                                //Console.WriteLine("SWAP");
-                                Job tmp = Machines[i].AssignedJobs[j];
-                                Machines[i].AssignedJobs[j] = Machines[i].AssignedJobs[j - 1];
-                                Machines[i].AssignedJobs[j - 1] = tmp;
-                                j = 0;
+                                if (!Machines[i].AssignedJobs[j].IsOutOfLaycan && Machines[i].AssignedJobs[j].Demurrage != 0)
+                                {
+                                    //Console.WriteLine("SWAP");
+                                    Job tmp = Machines[i].AssignedJobs[j];
+                                    Machines[i].AssignedJobs[j] = Machines[i].AssignedJobs[j - 1];
+                                    Machines[i].AssignedJobs[j - 1] = tmp;
+                                    j = 1;
+                                }
                             }
                         }
                     }
@@ -346,10 +349,6 @@ namespace GeneticAlgorithm
             {
                 SortByPriority();
             }
-            //else
-            //{
-            //    SortByReadyTime();
-            //}
 
             TravelCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.TravelCost));
             HandlingCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.HandlingCost));
@@ -607,16 +606,29 @@ namespace GeneticAlgorithm
             {
                 Job prevJob = new Job();
                 Job nextJob = new Job();
-                job.Ogv.Jobs = job.Ogv.Jobs.OrderBy(o => o.CompleteTime).ToList();
-                prevJob = job.Ogv.Jobs.Where(o => o.CompleteTime < job.CompleteTime).ToList().Count != 0 ? job.Ogv.Jobs.Where(o => o.CompleteTime < job.CompleteTime).Last() : null;
-                nextJob = job.Ogv.Jobs.Where(o => o.CompleteTime > job.CompleteTime).ToList().Count != 0 ? job.Ogv.Jobs.Where(o => o.CompleteTime > job.CompleteTime).First() : null;
+                double jobStartTime;
+                double jobCompleteTime;
+
+                if (job.AssignedMachine == null)
+                {
+                    jobStartTime = GetJobStartCompleteTime(machine, job).Item1;
+                    jobCompleteTime = GetJobStartCompleteTime(machine, job).Item2;
+                }
+                else
+                {
+                    jobStartTime = job.StartTime;
+                    jobCompleteTime = job.CompleteTime;
+                }
+
+                prevJob = Jobs.Where(x => x.OgvId == job.OgvId).Where(y => y.CompleteTime < jobStartTime && y.CompleteTime > 0).ToList().Count != 0 ? Jobs.Where(x => x.OgvId == job.OgvId).Where(y => y.CompleteTime < jobStartTime && y.CompleteTime > 0).Last() : null;
+                nextJob = Jobs.Where(x => x.OgvId == job.OgvId).Where(y => y.StartTime    > jobCompleteTime).ToList().Count != 0 ? Jobs.Where(x => x.OgvId == job.OgvId).Where(y => y.StartTime > jobCompleteTime).First() : null;
 
                 if (prevJob != null)
                 {
                     //Console.WriteLine("machine.Index = {0}, prevJob.Index = {1} job.Index = {2}", machine.Index, prevJob.Index, job.Index);
-                    //Console.WriteLine("prevJob.CompleteTime = {0}, job.StartTime = {1}", prevJob.CompleteTime, GetJobStartCompleteTime(machine, job).Item1);
+                    //Console.WriteLine("prevJob.CompleteTime = {0}, job.StartTime = {1}", prevJob.CompleteTime, jobStartTime);
 
-                    if (GetJobStartCompleteTime(machine, job).Item1 - prevJob.CompleteTime > Settings.InterrupedSetUpTime)
+                    if (Math.Abs(jobStartTime - prevJob.CompleteTime) > Settings.InterrupedSetUpTime)
                     {
                         return true;
                     }
@@ -629,8 +641,9 @@ namespace GeneticAlgorithm
                 if (nextJob != null)
                 {
                     //Console.WriteLine("machine.Index = {0}, nextJob.Index = {1} job.Index = {2}", machine.Index, nextJob.Index, job.Index);
-                    //Console.WriteLine("job.CompleteTime = {0}, nextJob.StartTime = {1}", GetJobStartCompleteTime(machine, job).Item2, nextJob.StartTime);
-                    if (nextJob.StartTime - GetJobStartCompleteTime(machine, job).Item2 > Settings.InterrupedSetUpTime)
+                    //Console.WriteLine("job.CompleteTime = {0}, nextJob.StartTime = {1}", jobCompleteTime, nextJob.StartTime);
+
+                    if (Math.Abs(nextJob.StartTime - jobCompleteTime) > Settings.InterrupedSetUpTime)
                     {
                         return true;
                     }

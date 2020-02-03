@@ -65,11 +65,11 @@ namespace GeneticAlgorithm
         public static IMutation MutationOperator = new InsertionMutation();
         public static ISelection SelectionOperator = new TournamentSelection();
         public enum ObjetiveFunction { TotalCostNoPriority, TotalCostWithPriority, DemurrageDespatchCost, SumLateStart, Makespan }
-        public static int ObjectiveCase = 0;
+        public static int ObjectiveCase = 1;
         public enum DedicationType { Flexible, Strict }
         public static int DedicationCase = 0;
         public static double PriorityGapTime = 10800.00;
-        public static double InterrupedSetUpTime = 1800.00;
+        public static double InterrupedSetUpTime = 800.00;
         public static double AnchorageTime = 1800.00;
         public static double CastingOffTime = 1800.00;
         public static bool IsAllMachinesUtilized = true;

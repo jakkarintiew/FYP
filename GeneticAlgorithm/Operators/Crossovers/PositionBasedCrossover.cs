@@ -90,8 +90,6 @@ namespace GeneticAlgorithm
                     //Console.WriteLine("firstChild:      {0}", firstChild.GetReadableGenes());
                     //Console.WriteLine("secondChild:     {0}\n", secondChild.GetReadableGenes());
 
-                    firstChild.MakeProperGenes();
-                    secondChild.MakeProperGenes();
                     firstChild.CalculateFitness();
                     secondChild.CalculateFitness();
 
