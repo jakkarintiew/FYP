@@ -48,7 +48,6 @@ namespace GeneticAlgorithm
             job.AssignedMachine = machine;
             job.Ogv.AssignedMachine = machine;
             machine.AssignedJobs.Add(job);
-            machine.AssignedJobIds.Add(job.Index);
             UpdateSchedule(machine, job);
         }
 
@@ -214,29 +213,6 @@ namespace GeneticAlgorithm
             return incrementalFitness;
         }
 
-        public void MachineJobListToGenes()
-        {
-            int nullCounter = 100;
-
-            for (int i = 0; i < Machines.Count; i++)
-            {
-                for (int j = 0; j < Jobs.Count; j++)
-                {
-                    int slotPosition = Jobs.Count * i + j;
-
-                    if (j < Machines[i].AssignedJobIds.Count)
-                    {
-                        Genes[slotPosition] = Machines[i].AssignedJobIds[j];
-                    }
-                    else
-                    {
-                        nullCounter += 1;
-                        Genes[slotPosition] = nullCounter;
-                    }
-                }
-            }
-        }
-
         public void GenesToSchedule()
         {
             InitObjects();
@@ -255,9 +231,11 @@ namespace GeneticAlgorithm
         public void ScheduleToGenes()
         {
             int nullCounter = 100;
+            Genes = new List<int>(Enumerable.Repeat(-1, Settings.NumAllMachines * Settings.NumJobs));
 
             for (int i = 0; i < Machines.Count; i++)
             {
+                Machines[i].AssignedJobs.OrderBy(x => x.StartTime);
                 for (int j = 0; j < Jobs.Count; j++)
                 {
                     int slotPosition = Jobs.Count * i + j;
@@ -269,15 +247,10 @@ namespace GeneticAlgorithm
                     else
                     {
                         nullCounter += 1;
-
-                        //Console.WriteLine(nullCounter);
-                        //Console.WriteLine(slotPosition);
-                        //Console.WriteLine(string.Join(",", Genes));
                         Genes[slotPosition] = nullCounter;
                     }
                 }
             }
-
         }
 
         public void SortByPriority()
@@ -355,6 +328,7 @@ namespace GeneticAlgorithm
             RentalCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.RentalCost));
             DndCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.DndCost));
             TotalCost = Machines.Sum(m => m.AssignedJobs.Sum(j => j.TotalCost));
+
             SumLateStart = Machines.Sum(m => m.AssignedJobs.Sum(j => j.LateStartTime));
             Makespan = Jobs.Select(x => x.CompleteTime).Max();
 
@@ -372,26 +346,23 @@ namespace GeneticAlgorithm
 
         public bool IsOverallFeasible()
         {
-            bool isFeasible = true;
+            bool isFeasible = false;
 
-            foreach (Machine machine in Machines)
+            for (int i = 0; i < Machines.Count; i++)
             {
-
-                if (!machine.IsThirdParty)
-                {
-                    if (Settings.IsAllMachinesUtilized && machine.AssignedJobs.Count == 0)
-                    {
-                        return false;
-                    }
-                }
-                else if (machine.IsCompulsary && machine.AssignedJobs.Count == 0)
+                if (Settings.IsAllMachinesUtilized && Machines.Count(mc => !mc.IsThirdParty) <= Jobs.Count && !Machines[i].IsThirdParty && Machines[i].AssignedJobs.Count == 0)
                 {
                     return false;
                 }
 
-                foreach (Job job in machine.AssignedJobs)
+                if (Machines.Count >= Jobs.Count && Machines[i].IsCompulsary && Machines[i].AssignedJobs.Count == 0)
                 {
-                    if (IsFeasible(machine, job))
+                    return false;
+                }
+
+                for (int j = 0; j < Machines[i].AssignedJobs.Count; j++)
+                {
+                    if (IsFeasible(Machines[i], Machines[i].AssignedJobs[j]))
                     {
                         isFeasible = true;
                     }
@@ -416,7 +387,6 @@ namespace GeneticAlgorithm
             //if (!IsOGVFeasible(machine, job)) { Console.WriteLine("FAILED OGV"); }
             //if (!IsFlexDedicationFeasible(machine, job)) { Console.WriteLine("FAILED DEDICATION"); }
 
-
             if (IsGearFeasible(machine, job) && IsUnloadingFeasible(machine, job) && IsBargeFeasible(machine, job) && IsOGVFeasible(machine, job))
             {
                 switch (dedicationType)
@@ -439,6 +409,8 @@ namespace GeneticAlgorithm
                         {
                             return false;
                         }
+                    case Settings.DedicationType.None:
+                        return true;
                 }
 
             }

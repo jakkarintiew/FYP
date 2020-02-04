@@ -74,7 +74,6 @@
     <Compile Include="Controller.cs" />
     <Compile Include="Operators\Crossovers\CrossoverBase.cs" />
     <Compile Include="Operators\Crossovers\ICrossover.cs" />
-    <Compile Include="Operators\Crossovers\SinglePointCrossover.cs" />
     <Compile Include="Operators\Crossovers\PositionBasedCrossover.cs" />
     <Compile Include="Operators\Mutations\IMutation.cs" />
     <Compile Include="Operators\Mutations\SwapMutation.cs" />

@@ -33,7 +33,6 @@ namespace GeneticAlgorithm
         public double CumulatedDistance { get; set; }
         public double LatestReadyTime { get; set; }
         public List<Job> AssignedJobs { get; set; }
-        public List<int> AssignedJobIds { get; set; }
         public List<Stoppage> Stoppages { get; private set; }
         public List<Event> ScheduledEvents { get; set; }
 
@@ -52,7 +51,6 @@ namespace GeneticAlgorithm
         public void Init()
         {
             AssignedJobs = new List<Job>();
-            AssignedJobIds = new List<int>();
             Stoppages = new List<Stoppage>();
             ScheduledEvents = new List<Event>();
 
