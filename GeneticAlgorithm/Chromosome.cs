@@ -253,17 +253,17 @@ namespace GeneticAlgorithm
 
             switch ((Settings.ObjetiveFunction)Settings.ObjectiveCase)
             {
-                case Settings.ObjetiveFunction.TotalCostWithPriority:
-                case Settings.ObjetiveFunction.TotalCostNoPriority:
+                case Settings.ObjetiveFunction.MINIMIZE_TOTALCOST_CUSTOMERPRIORITY:
+                case Settings.ObjetiveFunction.MINIMIZE_TOTAL_COST:
                     Fitness = Schedule.TotalCost;
                     break;
-                case Settings.ObjetiveFunction.DemurrageDespatchCost:
+                case Settings.ObjetiveFunction.MINIMIZE_DEMURRAGE_COST:
                     Fitness = Schedule.DndCost;
                     break;
-                case Settings.ObjetiveFunction.SumLateStart:
+                case Settings.ObjetiveFunction.EARLIEST_START_TIME:
                     Fitness = Schedule.SumLateStart;
                     break;
-                case Settings.ObjetiveFunction.Makespan:
+                case Settings.ObjetiveFunction.EARLIEST_COMPLETION_TIME:
                     Fitness = Schedule.Makespan;
                     break;
             }

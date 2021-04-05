@@ -44,7 +44,7 @@ namespace GeneticAlgorithm
         static void GetAppInfo()
         {
             // Set app vars
-            string appName = "Generalized Genetic Algorithm Assignment Problem Console App Implementation";
+            string appName = "Genetic Algorithm OFT Scheduling Problem Console App";
             string appVersion = "1.0.0";
             string appAuthor = "Jakkarin Sae-Tiew";
 

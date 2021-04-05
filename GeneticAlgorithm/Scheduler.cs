@@ -167,8 +167,8 @@ namespace GeneticAlgorithm
 
             switch (objetiveFunction)
             {
-                case Settings.ObjetiveFunction.TotalCostWithPriority:
-                case Settings.ObjetiveFunction.TotalCostNoPriority:
+                case Settings.ObjetiveFunction.MINIMIZE_TOTALCOST_CUSTOMERPRIORITY:
+                case Settings.ObjetiveFunction.MINIMIZE_TOTAL_COST:
                     travelCost = CalculateDistance(job.Latitude, job.Latitude, machine.Latitude, machine.Longitude);
                     handlingCost = machine.LoadingUnitCost * job.Quantity;
                     rentalCost = machine.RentalUnitCost * job.Quantity;
@@ -185,7 +185,7 @@ namespace GeneticAlgorithm
                     incrementalFitness = TotalCost;
                     break;
 
-                case Settings.ObjetiveFunction.DemurrageDespatchCost:
+                case Settings.ObjetiveFunction.MINIMIZE_DEMURRAGE_COST:
                     if (job.IsLateComplete())
                     {
                         dndCost = job.Demurrage * job.DndTime;
@@ -198,12 +198,12 @@ namespace GeneticAlgorithm
                     incrementalFitness = dndCost;
                     break;
 
-                case Settings.ObjetiveFunction.SumLateStart:
+                case Settings.ObjetiveFunction.EARLIEST_START_TIME:
                     startTime = GetJobStartCompleteTime(machine, job).Item1;
                     lateStartTime = startTime - job.ReadyTime;
                     incrementalFitness = lateStartTime;
                     break;
-                case Settings.ObjetiveFunction.Makespan:
+                case Settings.ObjetiveFunction.EARLIEST_COMPLETION_TIME:
                     completeTime = GetJobStartCompleteTime(machine, job).Item2;
                     increasedMakespan = Math.Max(0, completeTime - Jobs.Select(x => x.CompleteTime).Max());
                     incrementalFitness = increasedMakespan;
@@ -378,7 +378,6 @@ namespace GeneticAlgorithm
 
         public bool IsFeasible(Machine machine, Job job)
         {
-            Settings.DedicationType dedicationType = (Settings.DedicationType)Settings.DedicationCase;
 
 
             //if (!IsGearFeasible(machine, job)) { Console.WriteLine("FAILED GEAR"); }
@@ -387,39 +386,12 @@ namespace GeneticAlgorithm
             //if (!IsOGVFeasible(machine, job)) { Console.WriteLine("FAILED OGV"); }
             //if (!IsFlexDedicationFeasible(machine, job)) { Console.WriteLine("FAILED DEDICATION"); }
 
-            if (IsGearFeasible(machine, job) && IsUnloadingFeasible(machine, job) && IsBargeFeasible(machine, job) && IsOGVFeasible(machine, job))
-            {
-                switch (dedicationType)
-                {
-                    case Settings.DedicationType.Flexible:
-                        if (IsFlexDedicationFeasible(machine, job))
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    case Settings.DedicationType.Strict:
-                        if (IsStrictDedicationFeasible(machine, job))
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    case Settings.DedicationType.None:
-                        return true;
-                }
-
-            }
-            else
-            {
-                return false;
-            }
-
-            return false;
+            return (
+                IsGearFeasible(machine, job)
+                && IsDedicationFeasible(machine, job)
+                && IsUnloadingFeasible(machine, job)
+                && IsBargeFeasible(machine, job)
+                );
         }
 
         public bool IsGearFeasible(Machine machine, Job job)
@@ -441,56 +413,49 @@ namespace GeneticAlgorithm
             }
         }
 
-        public bool IsFlexDedicationFeasible(Machine machine, Job job)
+        public bool IsDedicationFeasible(Machine machine, Job job)
         {
-            if (job.IsDedicated)
+            Settings.DedicationType dedicationType = (Settings.DedicationType)Settings.DedicationCase;
+
+            switch (dedicationType)
             {
-                if (!machine.IsDedicated)
-                {
-                    return false;
-                }
-                else if (machine.DedicatedCustomer != job.Shipper)
-                {
-                    return false;
-                }
-                else
-                {
+                case Settings.DedicationType.Flexible:
+                    if (job.IsDedicated)
+                    {
+                        if (!machine.IsDedicated)
+                        {
+                            return false;
+                        }
+                        else if (machine.DedicatedCustomer != job.Shipper)
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                    break;
+
+                case Settings.DedicationType.Strict:
+                    if (job.IsDedicated)
+                    {
+                        if (machine.DedicatedCustomer == job.Shipper)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                case Settings.DedicationType.None:
                     return true;
-                }
             }
-            else
-            {
-                return true;
-            }
-
-        }
-
-        public bool IsStrictDedicationFeasible(Machine machine, Job job)
-        {
-            if (job.IsDedicated)
-            {
-                if (machine.DedicatedCustomer == job.Shipper)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            if (machine.IsDedicated)
-            {
-                if (machine.DedicatedCustomer == job.Shipper)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
             return true;
         }
 

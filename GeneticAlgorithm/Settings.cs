@@ -56,15 +56,15 @@ namespace GeneticAlgorithm
         }
 
         // GA hyper-parameters
-        public static int PopulationSize = 200;
+        public static int PopulationSize = 100;
         public static bool EnableCrossoverNewDNA = true;
         public static int NumNewDNA = (int)Math.Round(0.2 * PopulationSize);
         public static double MutationRate = 0.05;
         public static int Elitism = 5;
+        public static ISelection SelectionOperator = new TournamentSelection();
         public static ICrossover CrossoverOperator = new PositionBasedCrossover();
         public static IMutation MutationOperator = new InsertionMutation();
-        public static ISelection SelectionOperator = new TournamentSelection();
-        public enum ObjetiveFunction { TotalCostNoPriority, TotalCostWithPriority, DemurrageDespatchCost, SumLateStart, Makespan }
+        public enum ObjetiveFunction { MINIMIZE_TOTAL_COST, MINIMIZE_TOTALCOST_CUSTOMERPRIORITY, MINIMIZE_DEMURRAGE_COST, EARLIEST_START_TIME, EARLIEST_COMPLETION_TIME }
         public static int ObjectiveCase = 1;
         public enum DedicationType { Flexible, Strict, None }
         public static int DedicationCase = 0;
@@ -85,7 +85,7 @@ namespace GeneticAlgorithm
 
         // Stopping conditions
         public static double Solution = double.MinValue;
-        public static int MaxRepeatedGenerations = 100;
+        public static int MaxRepeatedGenerations = 200;
         public static int MaxGenerations = 500;
     }
 }
